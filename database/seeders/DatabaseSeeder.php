@@ -2,9 +2,14 @@
 
 namespace Database\Seeders;
 
+
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Brand;
+use App\Models\MainCategories;
+use App\Models\SubCategories;
+use App\Models\Product;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,9 +20,13 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::factory(10)->create();
+            Brand::factory(5)->has(
+                MainCategories::factory(2)->has(
+                    SubCategories::factory(3)->has(
+                        Product::factory(4)
+        )
+    )
+)->create();
     }
 }
