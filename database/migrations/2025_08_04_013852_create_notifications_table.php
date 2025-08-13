@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade');
             $table->text('content');
-            $table->string('status')->default('unread');
+            $table->enum('status', ['unread', 'read'])->default('unread');
             $table->unsignedBigInteger('related_entity_id')->nullable();
             $table->timestamps();
         });

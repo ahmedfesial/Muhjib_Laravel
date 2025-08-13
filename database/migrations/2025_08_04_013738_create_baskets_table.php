@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->boolean('include_price_flag')->default(true);
-            $table->string('status')->default('draft');
+            $table->enum('status', ['draft', 'in_progress', 'done'])->default('draft');
             $table->timestamps();
         });
     }

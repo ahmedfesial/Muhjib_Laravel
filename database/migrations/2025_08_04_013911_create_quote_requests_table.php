@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('quote_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->constrained()->onDelete('cascade');
-            $table->string('status')->default('pending');
+            $table->enum('status', ['pending', 'accepted', 'rejected', 'transferred'])->default('pending');
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });
