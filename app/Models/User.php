@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 
 // 1. User
-class User extends Model implements JWTSubject
+class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory , Notifiable;
+    use HasFactory , Notifiable, HasRoles;
 
     protected $table ='users';
 
