@@ -2,65 +2,78 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notifications;
-use App\Http\Requests\StoreNotificationsRequest;
-use App\Http\Requests\UpdateNotificationsRequest;
-
+use App\Models\Notification;
+use App\Http\Requests\StoreNotificationRequest;
+use App\Http\Requests\UpdateNotificationRequest;
+use App\Http\Resources\NotificationResource;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 class NotificationsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use AuthorizesRequests;
+
     public function index()
     {
-        //
+        // $this->authorize('viewAny', Notification::class);
+        $notifications = Notification::where('receiver_id', Auth::id())->latest()->get();
+        $data = NotificationResource::collection($notifications);
+        return response()->json(['message' => 'Notifications Retrieved Successfully', 'data' => $data], 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(StoreNotificationRequest $request)
     {
-        //
+        // $this->authorize('create', Notification::class);
+        $notification = Notification::create([$request->validated(),'sender_id' => Auth::id(),'status'=>'unread']);
+        $data = new NotificationResource($notification);
+        return response()->json(['message' => 'Notification Created Successfully', 'data' => $data], 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreNotificationsRequest $request)
+    // public function show(Notification $notification)
+    // {
+    //     $this->authorize('view', $notification);
+    //     $notification = Notification::find($notification);
+    //     if(!$notification){
+    //         return response()->json([
+    //             'message' => 'Notidication not found.',
+    //         ], 404);
+    //     }
+    //     $data = new NotificationResource($notification);
+    //     return response()->json(['message' => 'Notification Retrieved Successfully', 'data' => $data], 200);
+    // }
+
+    // public function update(UpdateNotificationRequest $request, Notification $notification)
+    // {
+    //     $this->authorize('update', $notification);
+    //     $notification = Notification::find($notification);
+    //     if(!$notification){
+    //         return response()->json([
+    //             'message' => 'Notidication not found.',
+    //         ], 404);
+    //     }
+    //     $notification->update($request->validated());
+    //     $data = new NotificationResource($notification);
+    //     return response()->json(['message' => 'Notification Updated Successfully', 'data' => $data], 200);
+    // }
+
+    // public function destroy(Notification $notification)
+    // {
+    //     $this->authorize('delete', $notification);
+    //     $notification = Notification::find($notification);
+    //     if(!$notification){
+    //         return response()->json([
+    //             'message' => 'Notidication not found.',
+    //         ], 404);
+    //     }
+    //     $notification->delete();
+    //     return response()->json(['message' => 'Notification Deleted Successfully'], 200);
+    // }
+    public function markAsRead(Notification $notification)
     {
-        //
+        $this->authorize('update', $notification);
+
+        $notification->update(['status' => 'read']);
+
+        return response()->json(['message' => 'Notification marked as read']);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Notifications $notifications)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Notifications $notifications)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateNotificationsRequest $request, Notifications $notifications)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Notifications $notifications)
-    {
-        //
-    }
 }

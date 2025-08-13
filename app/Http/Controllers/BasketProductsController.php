@@ -2,65 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BasketProducts;
+use App\Models\BasketProduct;
 use App\Http\Requests\StoreBasketProductsRequest;
 use App\Http\Requests\UpdateBasketProductsRequest;
+use App\Http\Resources\BasketProductResource;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BasketProductsController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    use AuthorizesRequests;
     public function store(StoreBasketProductsRequest $request)
     {
-        //
+        // $this->authorize('create', BasketProduct::class);
+
+        $basketProduct = BasketProduct::create($request->validated());
+        $data =new BasketProductResource($basketProduct);
+        return response()->json(['message'=>'Basket Products Created Successfully', 'data' => $data],201);
+        
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(BasketProducts $basketProducts)
+    public function update(UpdateBasketProductsRequest $request, BasketProduct $basketProduct)
     {
-        //
+        $this->authorize('update', $basketProduct);
+        $basketProduct = BasketProduct::find($basketProduct);
+        if(!$basketProduct){
+            return response()->json([
+                'message' => 'Brand not found.',
+            ], 404);
+        }
+        $basketProduct->update($request->validated());
+        $data=new BasketProductResource($basketProduct);
+        return response()->json(['message'=>'Basket Products Updated Successfully', 'data' => $data],200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(BasketProducts $basketProducts)
+    public function destroy(BasketProduct $basketProduct)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateBasketProductsRequest $request, BasketProducts $basketProducts)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(BasketProducts $basketProducts)
-    {
-        //
+        // $this->authorize('delete', $basketProduct);
+        // $basketProduct = BasketProduct::find($basketProduct);
+        // if(!$basketProduct){
+        //     return response()->json([
+        //         'message' => 'Brand not found.',
+        //     ], 404);
+        // }
+        $basketProduct->delete();
+        return response()->json(['message' => 'Deleted successfully']);
     }
 }
