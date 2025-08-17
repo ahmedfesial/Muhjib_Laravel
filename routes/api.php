@@ -23,7 +23,7 @@ use App\Http\Controllers\BasketController;
 use App\Http\Controllers\BasketProductsController;
 use App\Http\Controllers\PriceUploadLogController;
 use App\Http\Controllers\TempletesController;
-<<<<<<< HEAD
+<<<<<<<
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -118,7 +118,7 @@ Route::middleware('auth:api')->group(function () {
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
 Route::post('register', [RegisteredUserController::class, 'store']);
-Route::get('dashboard/overview',[DashboardController::class,'overview']);
+// Route::get('dashboard/overview',[DashboardController::class,'overview']);
 
 Route::middleware('auth:api')->group(function() {
 >>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
