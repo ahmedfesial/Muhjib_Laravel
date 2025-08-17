@@ -2,65 +2,108 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Catalog;
 use App\Http\Requests\StoreCatalogRequest;
-use App\Http\Requests\UpdateCatalogRequest;
+use App\Http\Resources\CatalogResource;
+use App\Models\Catalog;
+use App\Models\Basket;
+use App\Models\Template;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 
 class CatalogController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use AuthorizesRequests;
     public function index()
     {
-        //
+        // $this->authorize('viewAny', Catalog::class);
+        $catalogs = Catalog::with(['basket', 'template'])->latest()->get();
+        $data =CatalogResource::collection($catalogs);
+        return response()->json([
+            'message' => 'Catalogs Retrieved Successfully',
+            'data' =>$data
+        ],200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreCatalogRequest $request)
     {
-        //
+    //    $this->authorize('create', Catalog::class);
+
+        $basket = Basket::with(['products'])->findOrFail($request->basket_id);
+        $template = Template::findOrFail($request->template_id);
+
+       // PDF Generation Logic
+    if (!view()->exists('pdf.templates.custom_template')) {
+        return response()->json(['error' => 'PDF view not found'], 404);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Catalog $catalog)
-    {
-        //
+    $pdf = PDF::loadView('pdf.templates.custom_template', [
+        'basket' => $basket,
+        'template' => $template,
+    ]);
+
+    $pdfPath = 'catalogs/' . Str::uuid() . '.pdf';
+    Storage::put("public/$pdfPath", $pdf->output());
+
+    $catalog = Catalog::create([
+        'name' => $request->name,
+        'basket_id' => $request->basket_id,
+        'template_id' => $request->template_id,
+        'created_by' => Auth::id(),
+        'pdf_path' => $pdfPath,
+    ]);
+        $data =new CatalogResource($catalog);
+        return response()->json([
+            'message' => 'Catalog Created Successfully',
+            'data' => $data
+        ], 201);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Catalog $catalog)
+    public function show(Catalog $id)
     {
-        //
+        $this->authorize('view', $id);
+        $catalog= Catalog::find($id);
+        if(!$catalog){
+            return response()->json([
+                'message' => 'Catalog not found.',
+            ], 404);
+        }
+        $data=new CatalogResource($catalog);
+        return response()->json([
+            'message' => 'Catalog Retrieved Successfully',
+            'data' => $data
+        ],200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCatalogRequest $request, Catalog $catalog)
-    {
-        //
-    }
+    // public function update(UpdateCatalogRequest $request, Catalog $catalog)
+    // {
+    //     $this->authorize('update', $catalog);
+    //     $catalog = Catalog::find($catalog);
+    //     if(!$catalog){
+    //         return response()->json([
+    //             'message' => 'Catalog not found.',
+    //         ], 404);
+    //     }
+    //     $catalog->update($request->validated());
+    //     $data =new CatalogResource($catalog);
+    //     return response()->json([
+    //         'message' => 'Catalog Updated Successfully',
+    //         'data' => $data
+    //     ],200);
+    // }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Catalog $catalog)
-    {
-        //
-    }
+    // public function destroy(Catalog $catalog)
+    // {
+    //     $this->authorize('delete', $catalog);
+    //     $catalog = Catalog::find($catalog);
+    //     if(!$catalog){
+    //         return response()->json([
+    //             'message' => 'Catalog not found.',
+    //         ], 404);
+    //     }
+    //     $catalog->delete();
+    //     return response()->json(['message' => 'Catalog Deleted Successfully'],200);
+    // }
 }

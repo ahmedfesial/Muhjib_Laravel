@@ -11,7 +11,7 @@ class StoreTempletesRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class StoreTempletesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'file_path' => 'required|file|mimes:pdf',
+            'description' => 'nullable|string',
         ];
     }
 }

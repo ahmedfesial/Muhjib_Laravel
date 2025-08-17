@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('basket_id')->constrained()->onDelete('cascade');
             $table->foreignId('template_id')->nullable()->constrained()->onDelete('set null');
+            $table->text('pdf_path')->nullable();
             $table->timestamps();
         });
     }

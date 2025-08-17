@@ -22,7 +22,8 @@ class UpdateProductPriceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'price_type' => 'sometimes|in:A,B,C,D',
+            'value' => 'sometimes|numeric|min:0',
         ];
     }
 }

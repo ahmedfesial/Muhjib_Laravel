@@ -2,65 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\QuoteAction;
 use App\Http\Requests\StoreQuoteActionRequest;
-use App\Http\Requests\UpdateQuoteActionRequest;
+use App\Http\Resources\QuoteActionResource;
+use App\Models\QuoteAction;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 class QuoteActionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use AuthorizesRequests;
     public function index()
     {
-        //
+        // $this->authorize('viewAny', QuoteAction::class);
+        $data =QuoteActionResource::collection(QuoteAction::latest()->paginate(10));
+        return response()->json([
+            'message' => 'Quote Actions Retrieved Successfully',
+            'data' => $data
+        ],200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreQuoteActionRequest $request)
     {
-        //
+        // $this->authorize('create', QuoteAction::class);
+        $quoteAction = QuoteAction::create($request->validated());
+        $data =new QuoteActionResource($quoteAction);
+        return response()->json([
+            'message' => 'Quote Action Created Successfully',
+            'data' => $data
+        ],201);
     }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(QuoteAction $quoteAction)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(QuoteAction $quoteAction)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateQuoteActionRequest $request, QuoteAction $quoteAction)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(QuoteAction $quoteAction)
-    {
-        //
+    public function forwardtouser(){
+        // Super Admin can forward client to any user
     }
 }

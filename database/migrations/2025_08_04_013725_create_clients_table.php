@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('contact_info')->nullable();
-            $table->string('price_type')->nullable();
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('company')->nullable();
+            $table->enum('default_price_type', ['A', 'B', 'C', 'D'])->default('A');
             $table->foreignId('created_by_user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

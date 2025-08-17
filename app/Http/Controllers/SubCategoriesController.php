@@ -5,62 +5,66 @@ namespace App\Http\Controllers;
 use App\Models\SubCategories;
 use App\Http\Requests\StoreSubCategoriesRequest;
 use App\Http\Requests\UpdateSubCategoriesRequest;
+use App\Http\Resources\SubCategoryResource;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SubCategoriesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    use AuthorizesRequests;
     public function index()
     {
-        //
+        // $this->authorize('viewAny', SubCategories::class);
+        $subcategory = SubCategories::all();
+        $data =SubCategoryResource::collection($subcategory);
+        return response()->json(['message' => 'Sub Categories Retrieved Successfully', 'data'=>$data],200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreSubCategoriesRequest $request)
     {
-        //
+        // $this->authorize('create', SubCategories::class);
+        $subcategory = SubCategories::create($request->validated());
+        $data=new SubCategoryResource($subcategory);
+        return response()->json(['message'=>'Sub Category Created Successfully', 'data'=>$data],201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(SubCategories $subCategories)
+    public function show($id)
     {
-        //
+        // $this->authorize('view', $subCategory);
+        $subCategory = SubCategories::find($id);
+        if(!$subCategory){
+            return response()->json([
+                'message' => 'Sub Category not found.',
+            ], 404);
+        }
+        $data =new SubCategoryResource($subCategory);
+        return response()->json(['message' => 'Sub Category Retrieved Successfully', 'data'=>$data],200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SubCategories $subCategories)
+    public function update(UpdateSubCategoriesRequest $request, SubCategories $subCategory)
     {
-        //
+        // $this->authorize('update', $subCategory);
+        $subCategory = SubCategories::find($subCategory);
+        if(!$subCategory){
+            return response()->json([
+                'message' => 'Sub Category not found.',
+            ], 404);
+        }
+        $subCategory->update($request->validated());
+        $data=new SubCategoryResource($subCategory);
+        return response()->json(['message' => 'Sub Category Updated Successfully', 'data'=>$data],200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateSubCategoriesRequest $request, SubCategories $subCategories)
+    public function destroy(SubCategories $subCategory)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(SubCategories $subCategories)
-    {
-        //
+        // $this->authorize('delete', $subCategory);
+        // $subCategory = SubCategories::find($subCategory);
+        // if(!$subCategory){
+        //     return response()->json([
+        //         'message' => 'Sub Category not found.',
+        //     ], 404);
+        // }
+        $subCategory->delete();
+        return response()->json(['message' => 'Deleted successfully'],200);
     }
 }
+

@@ -11,7 +11,7 @@ class StoreBasketProductsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreBasketProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
-        ];
+        'basket_id' => 'required|exists:baskets,id',
+        'product_id' => 'required|exists:products,id',
+        'quantity' => 'required|integer|min:1',
+        'price' => 'required|numeric|min:0',
+    ];
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name_ar');
             $table->text('features')->nullable();
             $table->string('main_color')->nullable();
+            $table->foreignId('brand_id')->constrained('brands')->onDelete('cascade');
             $table->foreignId('sub_category_id')->constrained()->onDelete('cascade');
             $table->text('main_image')->nullable();
             $table->text('pdf_hs')->nullable();

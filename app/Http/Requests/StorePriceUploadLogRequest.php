@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreNotificationsRequest extends FormRequest
+class StorePriceUploadLogRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,7 @@ class StoreNotificationsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
-        ];
+        'file_name' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB limit
+    ];
     }
 }

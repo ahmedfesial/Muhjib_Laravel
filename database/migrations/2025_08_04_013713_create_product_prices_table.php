@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('product_prices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->string('price_type');
+            $table->enum('price_type', ['A', 'B', 'C', 'D']);
             $table->decimal('value', 10, 2);
             $table->timestamps();
         });

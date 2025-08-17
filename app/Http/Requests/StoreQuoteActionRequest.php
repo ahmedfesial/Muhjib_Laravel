@@ -6,23 +6,18 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreQuoteActionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'quote_request_id' => ['required', 'exists:quote_requests,id'],
+            'user_id' => ['required', 'exists:users,id'],
+            'action' => ['required', 'in:created,updated,transferred,approved,rejected'],
+            'note' => ['nullable', 'string'],
         ];
     }
 }

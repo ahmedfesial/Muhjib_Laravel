@@ -1,66 +1,88 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\QuoteRequest;
 use App\Http\Requests\StoreQuoteRequestRequest;
 use App\Http\Requests\UpdateQuoteRequestRequest;
+use App\Http\Resources\QuoteRequestResource;
+use App\Models\QuoteRequest;
+use Illuminate\Http\Request;
+use App\Policies\QuoteRequestPolicy;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class QuoteRequestController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    use AuthorizesRequests;
+    public function index(Request $request)
     {
-        //
+        // $this->authorize('viewAny', QuoteRequest::class);
+            $query = $this->filter($request);
+
+        $data =QuoteRequestResource::collection(QuoteRequest::latest()->paginate(10));
+        return  response()->json([
+            'message' => 'Quote Requests Retrieved Successfully',
+            'data' => $data
+        ],200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+    private function filter(Request $request)
+{
+    $query = QuoteRequest::query();
+
+    if ($request->filled('client_id')) {
+        $query->where('client_id', $request->client_id);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    if ($request->filled('assigned_to')) {
+        $query->where('assigned_to', $request->assigned_to);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    return $query->latest(); // latest by created_at
+}
+
     public function store(StoreQuoteRequestRequest $request)
     {
-        //
+        // $this->authorize('create', QuoteRequest::class);
+        $quote = QuoteRequest::create($request->validated());
+        $data=new QuoteRequestResource($quote);
+        return response()->json([
+            'message' => 'Quote Request Retrieved Successfully',
+            'data' => $data
+        ],201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(QuoteRequest $quoteRequest)
+    public function show($id)
     {
-        //
+        // $this->authorize('view', $quoteRequest);
+        $quoteRequest = QuoteRequest::find($id);
+        if(!$quoteRequest){
+            return response()->json([
+                'message'=>'Quote Request Not Found'
+            ],404);
+        }
+        $data =new QuoteRequestResource($quoteRequest);
+        return response()->json([
+            'message' => 'Quote Request Retrieved Successfully',
+            'data' => $data
+        ],200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(QuoteRequest $quoteRequest)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateQuoteRequestRequest $request, QuoteRequest $quoteRequest)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(QuoteRequest $quoteRequest)
-    {
-        //
+        $this->authorize('update', $quoteRequest);
+        if(!$quoteRequest){
+            return response()->json([
+                'message'=>'Quote Request Not Found'
+            ],404);
+        }
+        $quoteRequest->update($request->validated());
+        $data =new QuoteRequestResource($quoteRequest);
+        return response()->json([
+            'message' => 'Quote Request Updated Successfully',
+            'data' => $data
+        ],200);
     }
 }

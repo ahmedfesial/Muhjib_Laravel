@@ -6,23 +6,20 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateMainCategoriesRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'brand_id' => 'sometimes|exists:brands,id',
+            'name_en' => 'sometimes|string|max:255',
+            'name_ar' => 'sometimes|string|max:255',
+            'image' => 'nullable|image|max:2048',
         ];
     }
 }
+
+

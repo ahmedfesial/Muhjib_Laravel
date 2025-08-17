@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Auth;
+use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -10,7 +11,9 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
-
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
+use Tymon\JWTAuth\Facades\JWTAuth;
 class RegisteredUserController extends Controller
 {
     /**
@@ -18,24 +21,47 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): Response
-    {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+    public function store(Request $request): JsonResponse
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+        'phone' => ['required', 'string', 'max:20'],
+        'role' => ['required','string','in:user,admin,super_admin'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    ]);
 
+    DB::beginTransaction();
+
+    try {
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->string('password')),
+            'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'role' => $request->role
         ]);
 
-        event(new Registered($user));
+        // Generate token
+        $token = JWTAuth::fromUser($user);
 
-        Auth::login($user);
+        // Commit transaction
+        DB::commit();
 
-        return response()->noContent();
+        return response()->json([
+            'message' => 'User registered successfully',
+            'user' => $user,
+            'token' => $token,
+            'token_type' => 'bearer',
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return response()->json([
+            'message' => 'Registration failed',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
 }

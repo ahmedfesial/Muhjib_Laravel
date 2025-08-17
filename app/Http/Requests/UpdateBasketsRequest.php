@@ -22,7 +22,8 @@ class UpdateBasketsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
-        ];
+        'include_price_flag' => 'sometimes|boolean',
+        'status' => 'sometimes|string|in:pending,in_progress,done',
+    ];
     }
 }
