@@ -13,6 +13,7 @@ use App\Models\Brand;
 use App\Policies\BrandPolicy;
 use App\Models\MainCategories;
 use App\Policies\MainCategoriesPolicy;
+use App\Models\User;
 use App\Models\SubCategories;
 use App\Policies\SubCategoriesPolicy;
 class AuthServiceProvider extends ServiceProvider
@@ -38,6 +39,8 @@ class AuthServiceProvider extends ServiceProvider
         \App\Models\QuoteAction::class => \App\Policies\QuoteActionPolicy::class,
     \App\Models\PriceUploadLog::class => \App\Policies\PriceUploadLogPolicy::class,
     \App\Models\Template::class => \App\Policies\TempletesPolicy::class,
+        User::class => \App\Policies\UserPolicy::class,
+
     ];
 
     /**
