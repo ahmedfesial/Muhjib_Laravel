@@ -10,7 +10,10 @@ use App\Models\Client;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Storage;
+=======
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
 class UserController extends Controller
 {
@@ -23,6 +26,7 @@ class UserController extends Controller
         ],200);
     }
 
+<<<<<<< HEAD
     public function dashboard()
     {
         $user = Auth::user();
@@ -38,10 +42,16 @@ class UserController extends Controller
             'message' => 'Welcome to User Dashboard',
             'clients_count' => $data->count(),
         ]);
+=======
+    public function dashboard(){
+        // Dashboard for user
+        // Dashboard for admin and super admin
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     }
 
     public function index()
     {
+<<<<<<< HEAD
         // For Super Admin and admin
          $this->authorize('manageUsers', User::class);
 
@@ -65,6 +75,15 @@ class UserController extends Controller
             'message' => 'User created successfully.',
             'data' => $data,
         ], 201);
+=======
+        // For Admin
+    }
+
+    public function store(StoreUserRequest $request)
+    {
+        // Make Resource
+
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     }
 
     public function showmyclient(User $user)
@@ -82,6 +101,7 @@ class UserController extends Controller
     {
         $this->authorize('update', User::class);
         $validated = $request->validated();
+<<<<<<< HEAD
         if ($request->hasFile('image')) {
         // Delete old image
         if ($user->image && Storage::disk('public')->exists($user->image)) {
@@ -92,6 +112,8 @@ class UserController extends Controller
         $validated['image'] = $request->file('image')->store('users/images', 'public');
     }
 
+=======
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         if (isset($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         }

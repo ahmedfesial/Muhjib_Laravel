@@ -12,11 +12,17 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class QuoteRequestController extends Controller
 {
     use AuthorizesRequests;
+<<<<<<< HEAD
     public function index(Request $request)
     {
         // $this->authorize('viewAny', QuoteRequest::class);
             $query = $this->filter($request);
 
+=======
+    public function index()
+    {
+        // $this->authorize('viewAny', QuoteRequest::class);
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $data =QuoteRequestResource::collection(QuoteRequest::latest()->paginate(10));
         return  response()->json([
             'message' => 'Quote Requests Retrieved Successfully',
@@ -24,6 +30,7 @@ class QuoteRequestController extends Controller
         ],200);
     }
 
+<<<<<<< HEAD
     private function filter(Request $request)
 {
     $query = QuoteRequest::query();
@@ -43,6 +50,8 @@ class QuoteRequestController extends Controller
     return $query->latest(); // latest by created_at
 }
 
+=======
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     public function store(StoreQuoteRequestRequest $request)
     {
         // $this->authorize('create', QuoteRequest::class);
@@ -54,10 +63,16 @@ class QuoteRequestController extends Controller
         ],201);
     }
 
+<<<<<<< HEAD
     public function show($id)
     {
         // $this->authorize('view', $quoteRequest);
         $quoteRequest = QuoteRequest::find($id);
+=======
+    public function show(QuoteRequest $quoteRequest)
+    {
+        $this->authorize('view', $quoteRequest);
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         if(!$quoteRequest){
             return response()->json([
                 'message'=>'Quote Request Not Found'
@@ -67,7 +82,11 @@ class QuoteRequestController extends Controller
         return response()->json([
             'message' => 'Quote Request Retrieved Successfully',
             'data' => $data
+<<<<<<< HEAD
         ],200);
+=======
+        ],200); 
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     }
 
     public function update(UpdateQuoteRequestRequest $request, QuoteRequest $quoteRequest)

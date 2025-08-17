@@ -27,12 +27,21 @@ class RegisteredUserController extends Controller
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
         'phone' => ['required', 'string', 'max:20'],
+<<<<<<< HEAD
         'role' => ['required','string','in:user,admin,super_admin'],
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
     ]);
 
     DB::beginTransaction();
 
+=======
+        'role' => ['required', 'string'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    ]);
+    
+    DB::beginTransaction();
+
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     try {
         $user = User::create([
             'name' => $request->name,

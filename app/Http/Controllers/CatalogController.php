@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Auth;
+=======
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
 class CatalogController extends Controller
 {
@@ -34,6 +37,7 @@ class CatalogController extends Controller
         $basket = Basket::with(['products'])->findOrFail($request->basket_id);
         $template = Template::findOrFail($request->template_id);
 
+<<<<<<< HEAD
        // PDF Generation Logic
     if (!view()->exists('pdf.templates.custom_template')) {
         return response()->json(['error' => 'PDF view not found'], 404);
@@ -54,6 +58,24 @@ class CatalogController extends Controller
         'created_by' => Auth::id(),
         'pdf_path' => $pdfPath,
     ]);
+=======
+        // PDF Generation Logic
+        $pdf = PDF::loadView('pdf.templates.custom_template', [
+            'basket' => $basket,
+            'template' => $template,
+        ]);
+        if (!view()->exists('pdf.templates.custom_template')) {
+            return response()->json(['error' => 'PDF view not found'], 404);
+        }
+        $pdfPath = 'catalogs/' . Str::uuid() . '.pdf';
+        Storage::put("public/$pdfPath", $pdf->output());
+
+        $catalog = Catalog::create([
+            'basket_id' => $request->basket_id,
+            'template_id' => $request->template_id,
+            'pdf_path' => $pdfPath,
+        ]);
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $data =new CatalogResource($catalog);
         return response()->json([
             'message' => 'Catalog Created Successfully',
@@ -61,10 +83,17 @@ class CatalogController extends Controller
         ], 201);
     }
 
+<<<<<<< HEAD
     public function show(Catalog $id)
     {
         $this->authorize('view', $id);
         $catalog= Catalog::find($id);
+=======
+    public function show(Catalog $catalog)
+    {
+        $this->authorize('view', $catalog);
+        $catalog= Catalog::find($catalog);
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         if(!$catalog){
             return response()->json([
                 'message' => 'Catalog not found.',

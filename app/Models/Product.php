@@ -47,10 +47,13 @@ class Product extends Model
         return $this->hasMany(ProductPrice::class);
     }
     public function basketProducts() { return $this->hasMany(BasketProduct::class); }
+<<<<<<< HEAD
     public function getMainImageAttribute($value)
 {
     return $value 
         ? asset('storage/' . $value) 
         : null;
 }
+=======
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 }

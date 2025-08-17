@@ -14,6 +14,7 @@ class UpdateClientsRequest extends FormRequest
     public function rules(): array
     {
         return [
+<<<<<<< HEAD
             'name' => 'required|string|max:255',
         'email' => 'nullable|email|unique:clients,email,' . $this->id,
         'phone' => 'nullable|string|max:20',
@@ -21,6 +22,13 @@ class UpdateClientsRequest extends FormRequest
         'default_price_type' => 'nullable|string',
         'status' => 'nullable|in:active,inactive',
         'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+=======
+            'name' => 'sometimes|string|max:255',
+            'email' => 'nullable|email|unique:clients,email,' . $this->client->id,
+            'phone' => 'sometimes|string|max:20|unique:clients,phone,' . $this->client->id,
+            'company_name' => 'nullable|string|max:255',
+            'default_price_type' => 'sometimes',
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         ];
     }
 }

@@ -18,6 +18,7 @@ class BrandController extends Controller
     //     $this->authorizeResource(Brand::class, 'brand');
     // }
 
+<<<<<<< HEAD
     public function index(Request $request)
     {
         // $this->authorize('viewAny', Brand::class);
@@ -54,6 +55,16 @@ class BrandController extends Controller
     return $query;
 }
 
+=======
+    public function index()
+    {
+        // $this->authorize('viewAny', Brand::class);
+        $brand = Brand::paginate(10);
+        $data = BrandResource::collection($brand);
+        return response()->json(['message'=>'Brands Retrieved Successfully', 'data' => $data],200);
+    }
+
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     public function store(StoreBrandRequest $request)
     {
         // $this->authorize('create', Brand::class);
@@ -75,6 +86,7 @@ class BrandController extends Controller
         return response()->json(['message'=>'Brand Created Successfully', 'data' => $data],201);
     }
 
+<<<<<<< HEAD
 
        public function show($id){
         $brand = Brand::find($id);
@@ -94,6 +106,25 @@ class BrandController extends Controller
 
         $validatedData = $request->validated();
         $brand->update($validatedData);
+=======
+    public function show(Brand $brand)
+    {
+        // $this->authorize('view', $brand);
+        $data =new BrandResource($brand);
+        return response()->json(['message'=>'Brand Retrieved Successfully', 'data' => $data],200);
+    }
+
+    public function update(UpdateBrandRequest $request, Brand $brand)
+    {
+        // $this->authorize('update', $brand);
+        $brand = Brand::find($brand);
+        if(!$brand){
+            return response()->json([
+                'message' => 'Brand not found.',
+            ], 404);
+        }
+        $brand->update($request->validated());
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         if ($request->hasFile('logo')) {
             $data['logo'] = $request->file('logo')->store('brands/logos', 'public');
         }
@@ -105,12 +136,19 @@ class BrandController extends Controller
         if ($request->hasFile('catalog_pdf_url')) {
             $data['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
         }
+<<<<<<< HEAD
         $data = new BrandResource($brand);
 
         return response()->json(['message' => 'Brand updated successfully','data' => $data,], 200);
     }
 
 
+=======
+        $data =new BrandResource($brand);
+        return response()->json(['message'=>'Brand Updated Successfully', 'data' => $data],200);
+    }
+
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     public function destroy(Brand $brand)
     {
         // $this->authorize('delete', $brand);

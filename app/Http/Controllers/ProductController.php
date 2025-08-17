@@ -10,14 +10,23 @@ use App\Http\Resources\ProductResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+<<<<<<< HEAD
 use Illuminate\Http\JsonResponse;
+=======
+use Illuminate\Http\JsonResponse;   
+
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
 class ProductController extends Controller
 {
     use AuthorizesRequests;
     public function index()
     {
+<<<<<<< HEAD
         $this->authorize('viewAny', Product::class);
+=======
+        // $this->authorize('viewAny', Product::class);
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $query = Product::query();
         // Check if the request has a search parameter
         if (request()->has('search')) {
@@ -44,7 +53,11 @@ class ProductController extends Controller
         }
     }
     private function filter(Request $request){
+<<<<<<< HEAD
         $query = Product::query();
+=======
+        $query = Product::query();     
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         if ($request->filled('brand_id')) {
             $query->where('brand_id', $request->brand_id);
         }
@@ -55,12 +68,21 @@ class ProductController extends Controller
     }
     // helper method inside class
     protected function uploadFile($request, $field, $folder)
+<<<<<<< HEAD
 {
     if ($request->hasFile($field)) {
         return $request->file($field)->store($folder, 'public');
     }
     return null;
 }
+=======
+    {
+        if ($request->hasFile($field)) {
+            return $request->file($field)->store($folder, 'public');
+        }
+        return null;
+    }
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     // 🔧 Helper: Delete file from storage
     protected function deleteFile($path)
     {
@@ -68,6 +90,7 @@ class ProductController extends Controller
             Storage::disk('public')->delete($path);
         }
     }
+<<<<<<< HEAD
     // Update Quantity Function
     public function updateQuantity(Request $request, Product $product)
 {
@@ -94,6 +117,8 @@ class ProductController extends Controller
         'quantity' => $product->quantity,
     ]);
 }
+=======
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
     public function store(StoreProductRequest $request)
     {
@@ -115,10 +140,17 @@ class ProductController extends Controller
         ],201);
     }
 
+<<<<<<< HEAD
     public function show($id)
     {
         // $this->authorize('view', $product);
         $product = Product::find($id);
+=======
+    public function show(Product $product)
+    {
+        $this->authorize('view', $product);
+        $product = Product::find($product);
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         if(!$product){
             return response()->json([
                 'message' => 'Product Not found'
@@ -143,6 +175,7 @@ class ProductController extends Controller
         $data = $request->validated();
          // Optional: delete old files if new ones uploaded
         if ($request->hasFile('main_image')) {
+<<<<<<< HEAD
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
@@ -153,6 +186,18 @@ class ProductController extends Controller
             $data[$pdfField] = $this->uploadFile($request, $pdfField, 'products/pdfs');
         }
     }
+=======
+            $this->deleteFile($product->main_image);
+            $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
+        }
+
+        foreach (['pdf_hs', 'pdf_msds', 'pdf_technical'] as $pdfField) {
+            if ($request->hasFile($pdfField)) {
+                $this->deleteFile($product->$pdfField);
+                $data[$pdfField] = $this->uploadFile($request, $pdfField, 'products/pdfs');
+            }
+        }
+>>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $product->update($data);
         $updatedData=new ProductResource($product);
         return response()->json([
