@@ -10,18 +10,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
 
-<<<<<<< HEAD
 
 // 1. User
 class User extends Authenticatable implements JWTSubject
 {
     use HasFactory , Notifiable, HasRoles ;
-=======
-// 1. User
-class User extends Authenticatable implements JWTSubject
-{
-    use HasFactory , Notifiable, HasRoles;
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
     protected $table ='users';
 
@@ -32,11 +25,7 @@ class User extends Authenticatable implements JWTSubject
     return [];
     }
 
-<<<<<<< HEAD
     protected $fillable = ['name', 'email', 'password', 'phone', 'role', 'image'];
-=======
-    protected $fillable = ['name', 'email', 'password', 'phone', 'role'];
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     protected $hidden = ['password', 'remember_token'];
 
     public function clients() { return $this->hasMany(Client::class, 'created_by_user_id'); }
@@ -44,8 +33,4 @@ class User extends Authenticatable implements JWTSubject
     public function sentNotifications() { return $this->hasMany(Notification::class, 'sender_id'); }
     public function receivedNotifications() { return $this->hasMany(Notification::class, 'receiver_id'); }
     public function quoteActions() { return $this->hasMany(QuoteAction::class); }
-<<<<<<< HEAD
-
-=======
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 }

@@ -19,11 +19,6 @@ class MainCategoriesController extends Controller
         return response()->json(['message' => 'Main Categories Retrieved Successfully', 'data'=>$data],200);
     }
     public function filter(){
-<<<<<<< HEAD
-
-=======
-        
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     }
 
     public function store(StoreMainCategoriesRequest $request)
@@ -40,7 +35,6 @@ class MainCategoriesController extends Controller
         return response()->json(['message'=>'Main Category Created Successfully', 'data'=>$data],201);
     }
 
-<<<<<<< HEAD
     public function show($id)
     {
         // $this->authorize('view', $mainCategory);
@@ -50,17 +44,6 @@ class MainCategoriesController extends Controller
                 'message' => 'Main Category not found.',
             ], 404);
         }
-=======
-    public function show(MainCategories $mainCategory)
-    {
-        // $this->authorize('view', $mainCategory);
-        // $mainCategory = MainCategories::find($mainCategory);
-        // if(!$mainCategory){
-        //     return response()->json([
-        //         'message' => 'Main Category not found.',
-        //     ], 404);
-        // }
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $data =new MainCategoryResource($mainCategory);
         return response()->json(['message' => 'Main Category Retrieved Successfully', 'data'=>$data],200);
     }

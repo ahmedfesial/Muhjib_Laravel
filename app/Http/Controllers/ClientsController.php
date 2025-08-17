@@ -11,16 +11,10 @@ use Illuminate\Support\Facades\Auth;
 class ClientsController extends Controller
 {
     use AuthorizesRequests;
-<<<<<<< HEAD
     public function index(Request $request)
     {
         // $this->authorize('viewAny', Client::class);
          $query = $this->filter($request);
-=======
-    public function index()
-    {
-        // $this->authorize('viewAny', Client::class);
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $data =ClientResource::collection(Client::paginate(10));
         return response()->json([
             'message' => 'Clients Retrieved Successfully',
@@ -28,7 +22,6 @@ class ClientsController extends Controller
         ],200);
     }
 
-<<<<<<< HEAD
     private function filter(Request $request)
 {
     $query = Client::query();
@@ -56,20 +49,15 @@ class ClientsController extends Controller
     return $query;
 }
 
-=======
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     public function store(StoreClientsRequest $request)
     {
         // $this->authorize('create', Client::class);
         $client = Client::create($request->validated());
         $validated['created_by_user_id'] = Auth::id();
-<<<<<<< HEAD
         // Handle file upload
     if ($request->hasFile('logo')) {
         $validated['logo'] = $request->file('logo')->store('clients/logos', 'public');
     }
-=======
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
         $data =new ClientResource($client);
         return response()->json([
@@ -78,7 +66,6 @@ class ClientsController extends Controller
         ],201);
     }
 
-<<<<<<< HEAD
     public function show($id)
     {
         // $this->authorize('view', $id);
@@ -111,24 +98,6 @@ class ClientsController extends Controller
     }
 
         $client->update($validatedData);
-=======
-    public function show(Client $client)
-    {
-        // $this->authorize('view', $client);
-        return new ClientResource($client);
-    }
-
-    public function update(UpdateClientsRequest $request, Client $client)
-    {
-        // $this->authorize('update', $client);
-
-        if(!$client){
-            return response()->json([
-            'message' => 'Clients NOt Found'
-        ],404);
-        }
-        $client->update($request->validated());
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         $data =new ClientResource($client);
         return response()->json([
             'message' => 'Clients Updated Successfully',

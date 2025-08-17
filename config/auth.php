@@ -39,7 +39,6 @@ return [
     'guard' => 'api',
     'passwords' => 'users',
 ],
-<<<<<<< HEAD
 
 'guards' => [
     'api' => [
@@ -47,15 +46,8 @@ return [
         'provider' => 'users',
     ],
 ],
-=======
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
-'guards' => [
-    'api' => [
-        'driver' => 'jwt',
-        'provider' => 'users',
-    ],
-],
+
     /*
     |--------------------------------------------------------------------------
     | User Providers

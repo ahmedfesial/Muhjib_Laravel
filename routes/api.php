@@ -23,7 +23,6 @@ use App\Http\Controllers\BasketController;
 use App\Http\Controllers\BasketProductsController;
 use App\Http\Controllers\PriceUploadLogController;
 use App\Http\Controllers\TempletesController;
-<<<<<<<
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -106,22 +105,6 @@ Route::middleware(['auth:api', 'role:super_admin,admin,user'])->group(function (
 
 
 
-=======
-Route::post('contact-messages', [ApiContactMessageController::class, 'store']); // user access
-
-// Contact Messages Routes
-Route::middleware('auth:api')->group(function () {
-
-    Route::apiResource('contact-messages', ApiContactMessageController::class)
-        ->except(['store']); // admin/super admin access
-});
-Route::post('login', [AuthController::class, 'login']);
-Route::post('logout', [AuthController::class, 'logout']);
-Route::post('register', [RegisteredUserController::class, 'store']);
-// Route::get('dashboard/overview',[DashboardController::class,'overview']);
-
-Route::middleware('auth:api')->group(function() {
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     Route::get('user',[AuthController::class,'user']);
     // Client Routes
 Route::group(['prefix' => 'clients'], function () {
@@ -132,12 +115,6 @@ Route::group(['prefix' => 'clients'], function () {
     Route::delete('delete/{id}', [ClientsController::class, 'destroy']);
     Route::get('my-clients', [UserController::class, 'showmyclient']);
 });
-<<<<<<< HEAD
-=======
-
-
-});
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 // Basket Routes
 Route::group(['prefix'=>'baskets'],function(){
 Route::get('/', [BasketController::class, 'index']);
@@ -147,21 +124,6 @@ Route::get('/', [BasketController::class, 'index']);
     Route::delete('delete/{basket}', [BasketController::class, 'destroy']);
     Route::post('/{basket}/status', [BasketController::class, 'changeStatus']);
 });
-<<<<<<< HEAD
-
-=======
-// Products Routes
-Route::group(['prefix'=>'products'],function(){
-    Route::get('/', [ProductController::class, 'index']);
-    Route::post('/create', [ProductController::class, 'store']);
-    Route::get('show/{product}', [ProductController::class, 'show']);
-    Route::post('update/{product}', [ProductController::class, 'update']);
-    Route::delete('delete/{product}', [ProductController::class, 'destroy']);
-// Search and Filter Endpoints
-    Route::get('products/search', [ProductController::class, 'search']);
-    Route::get('products/filter', [ProductController::class, 'filter']);
-});
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 // Product Price Route
 Route::group(['prefix'=>'product-prices'],function(){
 Route::get('', [ProductPriceController::class, 'index']);
@@ -209,11 +171,7 @@ Route::group(['prefix' => 'sub-categories'], function () {
     Route::get('/', [SubCategoriesController::class, 'index']);
     Route::post('/create', [SubCategoriesController::class, 'store']);
     Route::get('show/{id}', [SubCategoriesController::class, 'show']);
-<<<<<<< HEAD
     Route::put('update/{id}', [SubCategoriesController::class, 'update']);
-=======
-    Route::post('update/{id}', [SubCategoriesController::class, 'update']);
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     Route::delete('delete/{id}', [SubCategoriesController::class, 'destroy']);
 });
 

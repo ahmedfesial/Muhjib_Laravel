@@ -13,7 +13,6 @@ class Client extends Model
     use HasFactory;
     protected $table ='clients';
 
-<<<<<<< HEAD
     protected $fillable = [
     'created_by_user_id',
     'name',
@@ -24,9 +23,6 @@ class Client extends Model
     'logo',
     'status'
     ];
-=======
-    protected $fillable = ['created_by_user_id', 'name', 'email', 'phone', 'company', 'default_price_type'];
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
 
     public function createdBy() {
         return $this->belongsTo(User::class, 'created_by_user_id');
