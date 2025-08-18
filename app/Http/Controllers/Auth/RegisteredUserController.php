@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
         'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
         'phone' => ['required', 'string', 'max:20'],
         'role' => ['required','string','in:user,admin,super_admin'],
-        'image_url' => ['nullable', 'string', 'max:255'],
+        'image' => ['nullable', 'image', 'max:255'],
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
     ]);
 
@@ -41,7 +41,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => $request->role,
-            'image_url' => $request->image_url
+            'image' => $request->image_url
         ]);
 
         // Generate token
