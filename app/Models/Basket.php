@@ -28,4 +28,16 @@ class Basket extends Model
         return $this->hasMany(BasketProduct::class);
     }
     public function catalog() { return $this->hasOne(Catalog::class); }
+    public function scopeFilter($query, $filters)
+    {
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (isset($filters['client_id'])) {
+            $query->where('client_id', $filters['client_id']);
+        }
+
+        return $query;
+    }
 }

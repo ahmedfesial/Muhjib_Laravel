@@ -15,19 +15,29 @@ use Illuminate\Http\JsonResponse;
 class ProductController extends Controller
 {
     use AuthorizesRequests;
-    public function index()
+    public function index(Request $request)
     {
-        $this->authorize('viewAny', Product::class);
+        // $this->authorize('viewAny', Product::class);
         $query = Product::query();
         // Check if the request has a search parameter
-        if (request()->has('search')) {
-            $query = $this->search(request());
-        }
+        if ($request->has('search')) {
+        $searchTerm = $request->input('search');
+        $query->where(function($q) use ($searchTerm) {
+            $q->where('name_en', 'like', "%$searchTerm%")
+              ->orWhere('name_ar', 'like', "%$searchTerm%");
+        });
+    }
         // Check if the request has filter parameters
-        if (request()->has('brand_id') || request()->has('sub_category_id')) {
-            $query = $this->filter(request());
+        if ($request->filled('name_en')) {
+            $query->where('name_en', $request->name_en);
         }
-        $products = $query->latest()->paginate(15);
+        if ($request->filled('brand_id')) {
+            $query->where('brand_id', $request->brand_id);
+        }
+        if ($request->filled('sub_category_id')) {
+            $query->where('sub_category_id', $request->sub_category_id);
+        }
+        $products = $query->paginate(15);
         $data =ProductResource::collection($products);
         return response()->json([
             'message' => 'Products Retrieved Successfully',
@@ -45,6 +55,9 @@ class ProductController extends Controller
     }
     private function filter(Request $request){
         $query = Product::query();
+        if ($request->filled('name_en')) {
+            $query->where('name_en', $request->brand_id);
+        }
         if ($request->filled('brand_id')) {
             $query->where('brand_id', $request->brand_id);
         }
@@ -133,13 +146,13 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $this->authorize('update', $product);
-        $product = Product::find($product);
-        if(!$product){
-            return response()->json([
-                'message' => 'Product Not found'
-            ],404);
-        }
+        // $this->authorize('update', $product);
+        // $product = Product::find($product);
+        // if(!$product){
+        //     return response()->json([
+        //         'message' => 'Product Not found'
+        //     ],404);
+        // }
         $data = $request->validated();
          // Optional: delete old files if new ones uploaded
         if ($request->hasFile('main_image')) {

@@ -13,8 +13,8 @@ class StoreBrandRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name_en' => 'required|string|max:255',
-            'name_ar' => 'required|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'logo' => 'nullable|image|max:2048',
             'short_description_en' => 'nullable|string',
             'short_description_ar' => 'nullable|string',

@@ -72,12 +72,12 @@ class QuoteRequestController extends Controller
 
     public function update(UpdateQuoteRequestRequest $request, QuoteRequest $quoteRequest)
     {
-        $this->authorize('update', $quoteRequest);
-        if(!$quoteRequest){
-            return response()->json([
-                'message'=>'Quote Request Not Found'
-            ],404);
-        }
+        // $this->authorize('update', $quoteRequest);
+        // if(!$quoteRequest){
+        //     return response()->json([
+        //         'message'=>'Quote Request Not Found'
+        //     ],404);
+        // }
         $quoteRequest->update($request->validated());
         $data =new QuoteRequestResource($quoteRequest);
         return response()->json([

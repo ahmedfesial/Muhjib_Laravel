@@ -21,7 +21,7 @@ public function template() {
     return $this->belongsTo(Template::class);
 }
 
-// 👇 Add creator relationship
+//  Add creator relationship
 public function creator() {
     return $this->belongsTo(User::class, 'created_by');
 }

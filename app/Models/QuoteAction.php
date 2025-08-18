@@ -12,7 +12,7 @@ class QuoteAction extends Model
     use HasFactory;
     protected $table='quote_actions';
 
-    protected $fillable = ['quote_request_id', 'user_id', 'action', 'note'];
+    protected $fillable = ['quote_request_id', 'user_id','price', 'action', 'note'];
 
     public function quoteRequest() {
         return $this->belongsTo(QuoteRequest::class);
@@ -21,4 +21,12 @@ class QuoteAction extends Model
     public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }
+    public function forwardedToUser()
+{
+    return $this->belongsTo(User::class, 'forwarded_to_user_id');
+}
+public function priceChangeRequests()
+{
+    return $this->hasMany(PriceChangeRequest::class);
+}
 }

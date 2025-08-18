@@ -82,10 +82,10 @@ class ClientsController extends Controller
             ], 200);
     }
 
-    public function update(UpdateClientsRequest $request,Client $id)
+    public function update(UpdateClientsRequest $request,Client $client)
     {
         // $this->authorize('update', $client);
-        $client = Client::find($id);
+        // $client = Client::find($id);
         // if(!$client){
         //     return response()->json([
         //     'message' => 'Clients NOt Found'

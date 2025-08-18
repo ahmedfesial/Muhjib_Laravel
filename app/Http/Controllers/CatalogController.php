@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use App\Models\Product;
+
 
 class CatalogController extends Controller
 {
@@ -76,6 +79,35 @@ class CatalogController extends Controller
             'data' => $data
         ],200);
     }
+
+    public function generateCatalog(Request $request)
+{
+    $request->validate([
+        'template_id' => 'required|exists:templates,id',
+        'products' => 'required|array',
+        'products.*' => 'exists:products,id', 
+    ]);
+
+    $template = Template::findOrFail($request->template_id);
+    $user = Auth::user();
+    $products = Product::whereIn('id', $request->products)->get();
+
+    $catalog = Catalog::create([
+        'user_id' => $user->id,
+        'template_id' => $template->id,
+        'basket_id' => $request->basket_id,
+        'title' => 'My Custom Catalog',
+    ]);
+
+    $pdf = PDF::loadView('templates.template_1', [
+        'user' => $user,
+        'products' => $products,
+        'template' => $template,
+        'catalog' => $catalog,
+    ]);
+
+    return $pdf->download('catalog.pdf');
+}
 
     // public function update(UpdateCatalogRequest $request, Catalog $catalog)
     // {

@@ -28,7 +28,8 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-
+use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\LegandController;
 
 
 // Send email verification link
@@ -45,84 +46,55 @@ Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
 // Reset password using token
 Route::post('/reset-password', [NewPasswordController::class, 'store']);
 // Public Routes
-// Route::post('user/create', [UserController::class, 'create']); // Only admin/super-admin can create
 Route::post('register', [RegisteredUserController::class, 'store']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
 
-Route::middleware(['auth:api', 'role:super_admin'])->group(function () {
-    Route::post('/users/create', [UserController::class, 'create']);
-});
-// Authenticated Routes
-Route::middleware('auth:api')->group(function () {
-
-Route::middleware(['auth:api', 'role:super_admin'])->group(function () {
+Route::middleware(['auth:api', 'is_super_admin'])->group(function () {
     Route::delete('products/delete/{product}', [ProductController::class, 'destroy']);
-
+    Route::post('/users/create', [UserController::class, 'create']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
 });
-
-Route::middleware(['auth:api', 'role:super_admin,admin'])->group(function () {
+Route::middleware(['auth:api', 'is_admin'])->group(function (){
+    // view all users
+    Route::get('/users', [UserController::class, 'index']);
 // Products Routes
 Route::group(['prefix'=>'products'],function(){
     Route::get('/', [ProductController::class, 'index']);
     Route::post('/create', [ProductController::class, 'store']);
-    Route::post('update/{product}', [ProductController::class, 'update']);
+    Route::get('products/show/{product}', [ProductController::class, 'show']);
+    Route::put('update/{product}', [ProductController::class, 'update']);
 // Search and Filter Endpoints
     Route::get('products/search', [ProductController::class, 'search']);
     Route::get('products/filter', [ProductController::class, 'filter']);
     // Update Quantity
     Route::patch('products/{product}/update-quantity', [ProductController::class, 'updateQuantity']);
 });
-});
-
-Route::middleware(['auth:api', 'role:super_admin,admin,user'])->group(function () {
-    Route::get('products/show/{product}', [ProductController::class, 'show']);
-
-});
-
-
-    // User Profile & Dashboard
-    Route::get('/profile', [UserController::class, 'profile']);
-    Route::put('/profile/{user}', [UserController::class, 'updateProfile']);
-    Route::get('/dashboard', [UserController::class, 'dashboard']);
-    Route::get('/my-clients', [UserController::class, 'showmyclient']);
-
-
-
-    Route::middleware('can:destroy,App\Models\User')->group(function () {
-        Route::delete('/users/{user}', [UserController::class, 'destroy']);
-    });
-
-    // View all users (admin/super-admin only)
-    Route::get('/users', [UserController::class, 'index'])->middleware('can:manageUsers,App\Models\User');
-
-    // Admin Panel Routes
-    Route::middleware('can:viewAdminDashboard,App\Models\User')->group(function () {
-        Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
-        Route::get('/admin/users', [AdminController::class, 'manageUsers']);
-    });
-});
-
-
-
-    Route::get('user',[AuthController::class,'user']);
-    // Client Routes
+// Admin Controller 
+Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
+Route::get('/admin/users', [AdminController::class, 'manageUsers']);
+// Legand and Certificate 
+Route::get('/legands', [LegandController::class, 'index']);
+Route::post('/legands/create', [LegandController::class, 'store']);
+Route::get('/certificates', [CertificateController::class, 'index']);
+Route::post('/certificates/create', [CertificateController::class, 'store']);
+ // Client Routes
 Route::group(['prefix' => 'clients'], function () {
     Route::get('/', [ClientsController::class, 'index']);
     Route::post('/create', [ClientsController::class, 'store']);
-    Route::get('show/{id}', [ClientsController::class, 'show']);
-    Route::post('update/{id}', [ClientsController::class, 'update']);
-    Route::delete('delete/{id}', [ClientsController::class, 'destroy']);
-    Route::get('my-clients', [UserController::class, 'showmyclient']);
+    Route::get('show/{client}', [ClientsController::class, 'show']);
+    Route::put('update/{client}', [ClientsController::class, 'update']);
+    Route::delete('delete/{client}', [ClientsController::class, 'destroy']);
 });
 // Basket Routes
 Route::group(['prefix'=>'baskets'],function(){
 Route::get('/', [BasketController::class, 'index']);
     Route::post('/create', [BasketController::class, 'store']);
     Route::get('show/{basket}', [BasketController::class, 'show']);
-    Route::post('update/{basket}', [BasketController::class, 'update']);
+    Route::put('update/{basket}', [BasketController::class, 'update']);
     Route::delete('delete/{basket}', [BasketController::class, 'destroy']);
-    Route::post('/{basket}/status', [BasketController::class, 'changeStatus']);
+    Route::patch('/{basket}/status', [BasketController::class, 'changeStatus']);
+    Route::get('/filter', [BasketController::class, 'filter']);
 });
 // Product Price Route
 Route::group(['prefix'=>'product-prices'],function(){
@@ -142,37 +114,41 @@ Route::group(['prefix'=>'basket-products'],function(){
 Route::group(['prefix' => 'quote-requests'], function () {
     Route::get('/', [QuoteRequestController::class, 'index']);
     Route::post('/create', [QuoteRequestController::class, 'store']);
-    Route::get('show/{id}', [QuoteRequestController::class, 'show']);
-    Route::post('update/{id}', [QuoteRequestController::class, 'update']);
+    Route::get('show/{quoteRequest}', [QuoteRequestController::class, 'show']);
+    Route::put('update/{quoteRequest}', [QuoteRequestController::class, 'update']);
 });
 // Quote Action Routes
 Route::group(['prefix' => 'quote-actions'], function () {
     Route::get('/', [QuoteActionController::class, 'index']);
     Route::post('/create', [QuoteActionController::class, 'store']);
+    Route::post('/forward', [QuoteActionController::class, 'forwardToUser']);
+    Route::post('/{id}/request-price-change', [QuoteActionController::class, 'requestPriceChange']);
+Route::post('/price-change-requests/{id}/approve', [QuoteActionController::class, 'approvePriceChange']);
+Route::post('/price-change-requests/{id}/reject', [QuoteActionController::class, 'rejectPriceChange']);
 });
 // Brand routes
 Route::group(['prefix' => 'brands'], function () {
     Route::get('/', [BrandController::class, 'index']);
     Route::post('/create', [BrandController::class, 'store']);
-    Route::get('/{id}', [BrandController::class, 'show']);
-    Route::put('update/{id}', [BrandController::class, 'update']);
-    Route::delete('delete/{id}', [BrandController::class, 'destroy']);
+    Route::get('/{brand}', [BrandController::class, 'show']);
+    Route::put('update/{brand}', [BrandController::class, 'update']);
+    Route::delete('delete/{brand}', [BrandController::class, 'destroy']);
 });
 // Main Categories Routes
 Route::group(['prefix' => 'main-categories'], function () {
     Route::get('/', [MainCategoriesController::class, 'index']);
     Route::post('/create', [MainCategoriesController::class, 'store']);
-    Route::get('show/{id}', [MainCategoriesController::class, 'show']);
-    Route::post('update/{id}', [MainCategoriesController::class, 'update']);
-    Route::delete('delete/{id}', [MainCategoriesController::class, 'destroy']);
+    Route::get('show/{mainCategory}', [MainCategoriesController::class, 'show']);
+    Route::put('update/{mainCategory}', [MainCategoriesController::class, 'update']);
+    Route::delete('delete/{mainCategory}', [MainCategoriesController::class, 'destroy']);
 });
 // Sub Categories Routes
 Route::group(['prefix' => 'sub-categories'], function () {
     Route::get('/', [SubCategoriesController::class, 'index']);
     Route::post('/create', [SubCategoriesController::class, 'store']);
-    Route::get('show/{id}', [SubCategoriesController::class, 'show']);
-    Route::put('update/{id}', [SubCategoriesController::class, 'update']);
-    Route::delete('delete/{id}', [SubCategoriesController::class, 'destroy']);
+    Route::get('show/{subCategory}', [SubCategoriesController::class, 'show']);
+    Route::put('update/{subCategory}', [SubCategoriesController::class, 'update']);
+    Route::delete('delete/{subCategory}', [SubCategoriesController::class, 'destroy']);
 });
 
 // Notification Routes
@@ -199,4 +175,18 @@ Route::group(['prefix'=>'catalogs'],function(){
 Route::get('/', [CatalogController::class, 'index']);
 Route::post('/create', [CatalogController::class, 'store']);
 Route::get('/show/{catalog}', [CatalogController::class, 'show']);
+Route::post('/generate',[CatalogController::class,'generateCatalog']);
 });
+
+});
+
+Route::middleware(['auth:api', 'is_user'])->group(function () {
+// User Profile & Dashboard
+    Route::get('user',[AuthController::class,'user']);
+Route::get('/profile', [UserController::class, 'profile']);
+    Route::put('/profile/{user}', [UserController::class, 'updateProfile']);
+    Route::get('/dashboard', [UserController::class, 'dashboard']);
+    Route::get('clients/my-clients', [UserController::class, 'showmyclient']);
+});
+
+

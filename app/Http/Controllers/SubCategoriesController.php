@@ -43,12 +43,12 @@ class SubCategoriesController extends Controller
     public function update(UpdateSubCategoriesRequest $request, SubCategories $subCategory)
     {
         // $this->authorize('update', $subCategory);
-        $subCategory = SubCategories::find($subCategory);
-        if(!$subCategory){
-            return response()->json([
-                'message' => 'Sub Category not found.',
-            ], 404);
-        }
+        // $subCategory = SubCategories::find($subCategory);
+        // if(!$subCategory){
+        //     return response()->json([
+        //         'message' => 'Sub Category not found.',
+        //     ], 404);
+        // }
         $subCategory->update($request->validated());
         $data=new SubCategoryResource($subCategory);
         return response()->json(['message' => 'Sub Category Updated Successfully', 'data'=>$data],200);

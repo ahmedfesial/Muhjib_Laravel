@@ -50,21 +50,22 @@ class MainCategoriesController extends Controller
 
     public function update(UpdateMainCategoriesRequest $request, MainCategories $mainCategory)
     {
-        $this->authorize('update', $mainCategory);
-        if(!$mainCategory){
-            return response()->json([
-                'message' => 'Main Category not found.',
-            ], 404);
-        }
-        $data = $request->validated();
+        // $this->authorize('update', $mainCategory);
+        // if(!$mainCategory){
+        //     return response()->json([
+        //         'message' => 'Main Category not found.',
+        //     ], 404);
+        // }
+        $validatedata = $request->validated();
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('main_categories', 'public');
+            $validatedata['image'] = $request->file('image')->store('main_categories', 'public');
         }
 
-        $mainCategory->update($data);
-        $datashow = new MainCategoryResource($mainCategory);
-        return response()->json(['message' => 'Main Category Updated Successfully', 'data'=>$datashow],200);
+        $mainCategory->update($validatedata);
+        $data = new MainCategoryResource($mainCategory);
+        $data->save();
+        return response()->json(['message' => 'Main Category Updated Successfully', 'data'=> $data],200);
     }
 
     public function destroy(MainCategories $mainCategory)

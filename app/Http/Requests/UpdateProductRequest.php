@@ -11,12 +11,12 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name_en' => 'sometimes|required|string|max:255',
-            'name_ar' => 'sometimes|required|string|max:255',
+            'name_en' => 'nullable|nullable|string|max:255',
+            'name_ar' => 'nullable|nullable|string|max:255',
             'features' => 'nullable|string',
             'main_color' => 'nullable|string|max:100',
-            'brand_id' => 'sometimes|required|exists:brands,id',
-            'sub_category_id' => 'sometimes|required|exists:sub_categories,id',
+            'brand_id' => 'nullable|nullable|exists:brands,id',
+            'sub_category_id' => 'nullable|nullable|exists:sub_categories,id',
             'main_image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
             'pdf_hs' => 'nullable|file|mimes:pdf',
             'pdf_msds' => 'nullable|file|mimes:pdf',
@@ -27,7 +27,7 @@ class UpdateProductRequest extends FormRequest
             'dimensions' => 'nullable|string|max:100',
             'capacity' => 'nullable|string|max:100',
             'specification' => 'nullable|string',
-            'price' => 'sometimes|required|numeric|min:0',
+            'price' => 'nullable|nullable|numeric|min:0',
             'is_visible' => 'boolean',
         ];
     }

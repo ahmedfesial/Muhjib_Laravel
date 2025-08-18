@@ -12,55 +12,31 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BasketController extends Controller
 {
-    use AuthorizesRequests;
     public function index(Request $request)
     {
         // $this->authorize('viewAny', Basket::class);
-         $filters = $request->only([
-        'status',
-        'client_id',
-        'created_by',
-        'include_price_flag',
-        'created_from',
-        'created_to'
-    ]);
 
-    $baskets = Basket::with(['client', 'creator', 'products'])
-                    ->filter($filters)
-                    ->paginate(10);
+        $baskets = Basket::paginate(10);
         $data = BasketResource::collection($baskets);
         return response()->json(['message'=>'Baskets Retrieved Successfully', 'data' => $data],200);
     }
 
-    public function scopeFilter($query, $filters)
+public function filter(Request $request)
 {
-    if (isset($filters['status'])) {
-        $query->where('status', $filters['status']);
-    }
+    $filters = $request->only([
+        'status',
+        'client_id',
+    ]);
 
-    if (isset($filters['client_id'])) {
-        $query->where('client_id', $filters['client_id']);
-    }
+    $baskets = Basket::filter($filters)->paginate(10);
+    $data = $baskets;
+    return response()->json([
+        'message' => 'Filtered Baskets Retrieved Successfully',
+        'data' => $data
+    ]);
+}
 
-    if (isset($filters['created_by'])) {
-        $query->where('created_by', $filters['created_by']);
-    }
-
-    if (isset($filters['include_price_flag'])) {
-        $query->where('include_price_flag', $filters['include_price_flag']);
-    }
-
-    if (isset($filters['created_from'])) {
-        $query->whereDate('created_at', '>=', $filters['created_from']);
-    }
-
-    if (isset($filters['created_to'])) {
-        $query->whereDate('created_at', '<=', $filters['created_to']);
-    }
-
-    return $query;
-    }
-
+    
     public function store(StoreBasketsRequest $request)
     {
         // $this->authorize('create', Basket::class);
@@ -71,24 +47,23 @@ class BasketController extends Controller
 
     public function show($id)
     {
-        $this->authorize('view', $id);
+        // $this->authorize('view', $id);
         $basket = Basket::find($id);
         if (!$basket) {
             return response()->json(['message' => 'Basket not found',], 404);
         }
-        $data =new BasketResource($basket->load(['client', 'creator', 'products']));
+        $data =new BasketResource($basket);
         return response()->json(['message'=>'Basket Retrieved Successfully', 'data' => $data],200);
     }
 
     public function update(UpdateBasketsRequest $request, Basket $basket)
     {
-        $this->authorize('update', $basket);
-        $basket = Basket::find($basket);
-        if(!$basket){
-            return response()->json([
-                'message' => 'Brand not found.',
-            ], 404);
-        }
+        // $basket = Basket::find($basket);
+        // if(!$basket){
+        //     return response()->json([
+        //         'message' => 'Brand not found.',
+        //     ], 404);
+        // }
         $basket->update($request->validated());
         $data =new BasketResource($basket);
         return response()->json(['message'=>'Basket Updated Successfully', 'data' => $data],200);
@@ -109,7 +84,7 @@ class BasketController extends Controller
 
     public function changeStatus(Request $request, Basket $basket)
     {
-        $this->authorize('update', $basket);
+        // $this->authorize('update', $basket);
 
         $request->validate(['status' => 'required|string|in:pending,in_progress,done']);
 

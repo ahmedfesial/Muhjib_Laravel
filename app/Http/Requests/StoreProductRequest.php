@@ -11,12 +11,12 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name_en' => 'required|string|max:255',
-            'name_ar' => 'required|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'features' => 'nullable|string',
             'main_color' => 'nullable|string|max:100',
-            'brand_id' => 'required|exists:brands,id',
-            'sub_category_id' => 'required|exists:sub_categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'sub_category_id' => 'nullable|exists:sub_categories,id',
             'main_image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
             'pdf_hs' => 'nullable|file|mimes:pdf',
             'pdf_msds' => 'nullable|file|mimes:pdf',
@@ -27,7 +27,7 @@ class StoreProductRequest extends FormRequest
             'dimensions' => 'nullable|string|max:100',
             'capacity' => 'nullable|string|max:100',
             'specification' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'is_visible' => 'boolean',
         ];
     }

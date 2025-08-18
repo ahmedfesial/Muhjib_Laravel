@@ -7,8 +7,10 @@ use App\Http\Resources\QuoteActionResource;
 use App\Models\QuoteAction;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-
-
+use App\Models\PriceChangeRequest;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Notification;
 class QuoteActionController extends Controller
 {
     use AuthorizesRequests;
@@ -32,7 +34,114 @@ class QuoteActionController extends Controller
             'data' => $data
         ],201);
     }
-    public function forwardtouser(){
+    public function forwardtouser(Request $request){
         // Super Admin can forward client to any user
+        $request->validate([
+        'quote_action_id' => 'required|exists:quote_actions,id',
+        'user_id' => 'required|exists:users,id'
+    ]);
+
+    $quoteAction = QuoteAction::find($request->quote_action_id);
+    $quoteAction->forwarded_to_user_id = $request->user_id;
+    $quoteAction->save();
+    $data =new QuoteActionResource($quoteAction);
+
+    return response()->json([
+        'message' => 'Quotation forwarded successfully',
+        'data' => $data
+    ], 200);
     }
+    
+    public function requestPriceChange(Request $request, $quoteId)
+    {
+    $request->validate([
+        'requested_price' => 'required|numeric|min:0'
+    ]);
+
+    $user = Auth::user();
+
+    $changeRequest = PriceChangeRequest::create([
+        'quote_action_id' => $quoteId,
+        'user_id' => $user->id,
+        'requested_price' => $request->requested_price,
+        'status' => 'pending'
+    ]);
+    $admins = User::whereIn('role', ['admin', 'super_admin'])->get();
+
+    foreach ($admins as $admin) {
+        Notification::create([
+            'sender_id' => $user->id,
+            'receiver_id' => $admin->id,
+            'title' => 'Price Change Request',
+            'body' => "{$user->name} requested to change the price for quote #{$quoteId} to {$request->requested_price}",
+            'content' => 'System-generated notification for price change.',
+            'status' => 'unread'
+        ]);
+    }
+    $data=$changeRequest;
+    return response()->json([
+        'message' => 'Price change request submitted and awaiting approval.',
+        'data' => $data
+    ]);
+    }
+    public function approvePriceChange($requestId)
+{
+    $admin = Auth::user();
+    if (!in_array($admin->role, ['admin', 'super_admin'])) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $request = PriceChangeRequest::findOrFail($requestId);
+
+    // if ($request->status !== 'pending') {
+    //     return response()->json(['message' => 'Request already processed'], 400);
+    // }
+
+    $quote = QuoteAction::findOrFail($request->quote_action_id);
+    $quote->price = $request->requested_price;
+    $quote->save();
+
+    $request->status = 'approved';
+    $request->save();
+    Notification::create([
+        'sender_id' => $admin->id,
+        'receiver_id' => $request->user_id,
+        'title' => 'Price Change Approved',
+        'body' => "Your request to change the price to {$request->requested_price} was approved by {$admin->name}.",
+        'content' => 'System-generated notification for price change.',
+        'status' => 'unread'
+    ]);
+    $data =$quote;
+    return response()->json([
+        'message' => 'Price change approved and applied.',
+        'data' => $data 
+    ]);
+}
+public function rejectPriceChange($requestId)
+{
+    $admin = Auth::user();
+    if (!in_array($admin->role, ['admin', 'super_admin'])) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $request = PriceChangeRequest::findOrFail($requestId);
+
+    // if ($request->status !== 'pending') {
+    //     return response()->json(['message' => 'Request already processed'], 400);
+    // }
+
+    $request->status = 'rejected';
+    $request->save();
+
+    Notification::create([
+        'sender_id' => $admin->id,
+        'receiver_id' => $request->user_id,
+        'title' => 'Price Change Rejected',
+        'body' => "Your request to change the price to {$request->requested_price} was rejected by {$admin->name}.",
+        'content' => 'System-generated notification for price change.',
+        'status' => 'unread'
+    ]);
+
+    return response()->json(['message' => 'Price change request rejected.']);
+}
 }
