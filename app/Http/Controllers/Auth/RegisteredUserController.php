@@ -41,7 +41,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => $request->role,
-            'image' => $request->image_url
+            'image' => $request->image
         ]);
 
         // Generate token
