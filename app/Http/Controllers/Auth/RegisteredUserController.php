@@ -27,28 +27,21 @@ class RegisteredUserController extends Controller
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
         'phone' => ['required', 'string', 'max:20'],
-<<<<<<< HEAD
         'role' => ['required','string','in:user,admin,super_admin'],
+        'image_url' => ['nullable', 'string', 'max:255'],
         'password' => ['required', 'confirmed', Rules\Password::defaults()],
     ]);
 
     DB::beginTransaction();
 
-=======
-        'role' => ['required', 'string'],
-        'password' => ['required', 'confirmed', Rules\Password::defaults()],
-    ]);
-    
-    DB::beginTransaction();
-
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
     try {
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'role' => $request->role
+            'role' => $request->role,
+            'image_url' => $request->image_url
         ]);
 
         // Generate token
