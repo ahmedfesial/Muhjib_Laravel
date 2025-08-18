@@ -15,19 +15,13 @@ class StoreClientsRequest extends FormRequest
     {
         return [
         'name' => 'required|string|max:255',
-<<<<<<< HEAD
         'email' => 'nullable|email|unique:clients,email,' . $this->id,
         'phone' => 'nullable|string|max:20',
         'company' => 'nullable|string|max:255',
         'default_price_type' => 'nullable|string',
         'status' => 'nullable|in:active,inactive',
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-=======
-        'email' => 'nullable|email|max:255',
-        'phone' => 'nullable|string|max:20',
-        'company' => 'nullable|string|max:255',
-        'default_price_type' => 'required|in:A,B,C'
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
-        ];
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'created_by_user_id' => 'required|exists:users,id',
+    ];
     }
 }

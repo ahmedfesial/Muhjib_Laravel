@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 class ClientsController extends Controller
 {
-    use AuthorizesRequests;
+    // use AuthorizesRequests;
     public function index(Request $request)
     {
         // $this->authorize('viewAny', Client::class);
