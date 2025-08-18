@@ -15,13 +15,13 @@ class BasketResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-        'id' => $this->id,
-        'client' => new ClientResource($this->whenLoaded('client')),
-        'creator' => new UserResource($this->whenLoaded('creator')),
-        'products' => BasketProductResource::collection($this->whenLoaded('products')),
-        'include_price_flag' => $this->include_price_flag,
-        'status' => $this->status,
-        'created_at' => $this->created_at,
+            'id' => $this->id,
+            'client_name' => $this->client?->name, 
+            'creator_name' => $this->creator?->name,
+            'product_count' => $this->products->count(),
+            'include_price_flag' => $this->include_price_flag,
+            'status' => $this->status,
+            'created_at' => $this->created_at->toDateTimeString(),
         ];
     }
 }

@@ -16,9 +16,12 @@ class BasketController extends Controller
     {
         // $this->authorize('viewAny', Basket::class);
 
-        $baskets = Basket::paginate(10);
-        $data = BasketResource::collection($baskets);
-        return response()->json(['message'=>'Baskets Retrieved Successfully', 'data' => $data],200);
+        $baskets = Basket::with(['client', 'creator', 'products'])->paginate(10);
+            $data = BasketResource::collection($baskets);
+            return response()->json([
+                'message' => 'Baskets Retrieved Successfully',
+                'data' => $data
+            ]);
     }
 
 public function filter(Request $request)
@@ -36,7 +39,7 @@ public function filter(Request $request)
     ]);
 }
 
-    
+
     public function store(StoreBasketsRequest $request)
     {
         // $this->authorize('create', Basket::class);
