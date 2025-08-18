@@ -41,7 +41,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => $request->role,
-            'image' => $request->image
+            'image' => $request->image ? asset('storage/' . $request->image) : null,
         ]);
 
         // Generate token
