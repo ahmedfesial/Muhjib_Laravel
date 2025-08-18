@@ -23,6 +23,10 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): JsonResponse
 {
+    $imagePath = null;
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('users', 'public');
+    }
     $request->validate([
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
@@ -41,7 +45,7 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => $request->role,
-            'image' => $request->image ? asset('storage/' . $request->image) : null,
+            'image' => $imagePath,
         ]);
 
         // Generate token
