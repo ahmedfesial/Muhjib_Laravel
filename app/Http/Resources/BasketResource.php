@@ -16,7 +16,8 @@ class BasketResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'client_name' => $this->client?->name, 
+            'name' => $this->name,
+            'client_name' => $this->client?->name,
             'creator_name' => $this->creator?->name,
             'product_count' => $this->products->count(),
             'include_price_flag' => $this->include_price_flag,

@@ -22,6 +22,7 @@ class StoreBasketsRequest extends FormRequest
     public function rules(): array
     {
         return [
+        'name' => 'required|string|max:255',
         'client_id' => 'required|exists:clients,id',
         'created_by' => 'required|exists:users,id',
         'include_price_flag' => 'boolean',

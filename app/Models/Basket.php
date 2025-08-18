@@ -14,7 +14,7 @@ class Basket extends Model
     use HasFactory;
     protected $table ='baskets';
 
-    protected $fillable = ['client_id', 'created_by', 'include_price_flag', 'status'];
+    protected $fillable = ['name' ,'client_id', 'created_by', 'include_price_flag', 'status'];
 
     public function client() {
         return $this->belongsTo(Client::class);

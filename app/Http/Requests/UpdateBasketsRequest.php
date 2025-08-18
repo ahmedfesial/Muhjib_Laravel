@@ -22,8 +22,11 @@ class UpdateBasketsRequest extends FormRequest
     public function rules(): array
     {
         return [
-        'include_price_flag' => 'sometimes|boolean',
-        'status' => 'sometimes|string|in:pending,in_progress,done',
+            'name' => ['sometimes', 'string', 'max:255'],
+            'client_id' => ['sometimes', 'exists:clients,id'],
+            'created_by' => ['sometimes', 'exists:users,id'],
+            'include_price_flag' => ['sometimes', 'boolean'],
+            'status' => ['sometimes', 'in:pending,in_progress,done'],
     ];
     }
 }
