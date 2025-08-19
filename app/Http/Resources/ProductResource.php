@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProductResource extends JsonResource
 {
@@ -18,7 +19,11 @@ class ProductResource extends JsonResource
             'main_color' => $this->main_color,
             'brand_id' => $this->brand_id,
             'sub_category_id' => $this->sub_category_id,
-            'main_image' => $this->main_image ? asset('storage/' . $this->main_image) : null,
+            'main_image' => $this->main_image
+    ? (Str::startsWith($this->main_image, ['http://', 'https://'])
+        ? $this->main_image
+        : asset('storage/' . $this->main_image))
+    : null,
             'pdf_hs' => $this->pdf_hs ? asset('storage/' . $this->pdf_hs) : null,
             'pdf_msds' => $this->pdf_msds ? asset('storage/' . $this->pdf_msds) : null,
             'pdf_technical' => $this->pdf_technical ? asset('storage/' . $this->pdf_technical) : null,
