@@ -33,6 +33,7 @@ class Product extends Model
         'specification',
         'price',
         'is_visible',
+        'quantity',
     ];
 
     public function brand() {
@@ -49,8 +50,8 @@ class Product extends Model
     public function basketProducts() { return $this->hasMany(BasketProduct::class); }
     public function getMainImageAttribute($value)
 {
-    return $value 
-        ? asset('storage/' . $value) 
+    return $value
+        ? asset('storage/' . $value)
         : null;
 }
 }

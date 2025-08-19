@@ -9,6 +9,7 @@ use App\Http\Resources\BasketResource;
 use Illuminate\Http\Request;
 use App\Http\Resources\ClientResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\User;
 
 class BasketController extends Controller
 {
@@ -96,6 +97,21 @@ public function filter(Request $request)
 
         return response()->json(['message' => 'Status updated', 'status' => $basket->status]);
     }
+
+    public function getUserBaskets(User $user)
+{
+    $baskets = Basket::with(['client', 'products'])
+        ->where('created_by', $user->id)
+        ->paginate(10);
+
+    $data = BasketResource::collection($baskets);
+
+    return response()->json([
+        'message' => 'User Baskets Retrieved Successfully',
+        'data' => $data,
+    ]);
+}
+
 }
 
 

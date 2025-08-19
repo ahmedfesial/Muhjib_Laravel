@@ -7,26 +7,18 @@ use App\Http\Requests\UpdateBrandRequest;
 use App\Http\Resources\BrandResource;
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BrandController extends Controller
 {
-    use AuthorizesRequests;
-    // public function __construct()
-    // {
-    //     parent::__construct();
-    //     $this->authorizeResource(Brand::class, 'brand');
-    // }
 
     public function index(Request $request)
     {
         // $this->authorize('viewAny', Brand::class);
         $query = $this->filter($request);
-
-    // Paginate results
     $brands = $query->paginate(10);
 
-    // Transform using BrandResource
     $data = BrandResource::collection($brands);
 
     return response()->json([
@@ -54,26 +46,41 @@ class BrandController extends Controller
     return $query;
 }
 
-    public function store(StoreBrandRequest $request)
-    {
-        // $this->authorize('create', Brand::class);
-        $data = $request->validated();
 
-        if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('brands/logos', 'public');
-        }
+    public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name_en' => 'required|string|max:255',
+        'name_ar' => 'required|string|max:255',
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+        'short_description_en' => 'nullable|string',
+        'short_description_ar' => 'nullable|string',
+        'full_description_en' => 'nullable|string',
+        'full_description_ar' => 'nullable|string',
+        'background_image_url' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:4096',
+        'color_code' => 'nullable|string|max:7',
+        'catalog_pdf_url' => 'nullable|mimes:pdf|max:10000',
+    ]);
 
-        if ($request->hasFile('background_image_url')) {
-            $data['background_image_url'] = $request->file('background_image_url')->store('brands/backgrounds', 'public');
-        }
-
-        if ($request->hasFile('catalog_pdf_url')) {
-            $data['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
-        }
-        $brand = Brand::create($data);
-        $data =new BrandResource($brand);
-        return response()->json(['message'=>'Brand Created Successfully', 'data' => $data],201);
+    if ($request->hasFile('logo')) {
+        $validated['logo'] = $request->file('logo')->store('brands/logos', 'public');
     }
+
+    if ($request->hasFile('background_image_url')) {
+        $validated['background_image_url'] = $request->file('background_image_url')->store('brands/backgrounds', 'public');
+    }
+
+    if ($request->hasFile('catalog_pdf_url')) {
+        $validated['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
+    }
+
+    $brand = Brand::create($validated);
+
+    return response()->json([
+        'message' => 'Brand created successfully',
+        'data' => $brand
+    ], 201);
+}
 
 
        public function show($id){
@@ -86,35 +93,55 @@ class BrandController extends Controller
         return response()->json(['message' => 'Brand fetched successfully','data' => $data,], 200);
     }
 
-    public function update(UpdateBrandRequest $request,string $id){
-        $brand = Brand::find($id);
-        if (!$brand) {
-            return response()->json(['message' => 'Brand not found',], 404);
-        }
+    public function update(Request $request, Brand $brand)
+{
+    $validated = $request->validate([
+        'name_en' => 'sometimes|required|string|max:255',
+        'name_ar' => 'sometimes|required|string|max:255',
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+        'short_description_en' => 'nullable|string',
+        'short_description_ar' => 'nullable|string',
+        'full_description_en' => 'nullable|string',
+        'full_description_ar' => 'nullable|string',
+        'background_image_url' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:4096',
+        'color_code' => 'nullable|string|max:7',
+        'catalog_pdf_url' => 'nullable|mimes:pdf|max:10000',
+    ]);
 
-        $validatedData = $request->validated();
-        $brand->update($validatedData);
-        if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('brands/logos', 'public');
+    if ($request->hasFile('logo')) {
+        if ($brand->logo) {
+            Storage::disk('public')->delete($brand->logo);
         }
-
-        if ($request->hasFile('background_image_url')) {
-            $data['background_image_url'] = $request->file('background_image_url')->store('brands/backgrounds', 'public');
-        }
-
-        if ($request->hasFile('catalog_pdf_url')) {
-            $data['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
-        }
-        $data = new BrandResource($brand);
-
-        return response()->json(['message' => 'Brand updated successfully','data' => $data,], 200);
+        $validated['logo'] = $request->file('logo')->store('brands/logos', 'public');
     }
+
+    if ($request->hasFile('background_image_url')) {
+        if ($brand->background_image_url) {
+            Storage::disk('public')->delete($brand->background_image_url);
+        }
+        $validated['background_image_url'] = $request->file('background_image_url')->store('brands/backgrounds', 'public');
+    }
+
+    if ($request->hasFile('catalog_pdf_url')) {
+        if ($brand->catalog_pdf_url) {
+            Storage::disk('public')->delete($brand->catalog_pdf_url);
+        }
+        $validated['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
+    }
+
+    $brand->update($validated);
+
+    return response()->json([
+        'message' => 'Brand updated successfully',
+        'data' => $brand
+    ]);
+}
 
 
     public function destroy(Brand $brand)
     {
         // $this->authorize('delete', $brand);
-        
+
         $brand->delete();
         return response()->json(['message' => 'Brand deleted successfully'],200);
     }

@@ -32,6 +32,7 @@ class ProductResource extends JsonResource
             'is_visible' => $this->is_visible,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'quantity' => $this->quantity,
         ];
     }
 

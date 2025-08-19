@@ -29,6 +29,7 @@ class UpdateProductRequest extends FormRequest
             'specification' => 'nullable|string',
             'price' => 'nullable|nullable|numeric|min:0',
             'is_visible' => 'boolean',
+            'quantity' => 'nullable|integer|min:0',
         ];
     }
 }

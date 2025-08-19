@@ -24,13 +24,19 @@ class MainCategoriesController extends Controller
     public function store(StoreMainCategoriesRequest $request)
     {
         // $this->authorize('create', MainCategories::class);
-        $data = $request->validated();
-        // Image handle
-        if ($request->hasFile('image_url')) {
-            $data['image_url'] = $request->file('image_url')->store('main_categories', 'public');
-        }
+        $validated = $request->validate([
+        'brand_id' => 'required|exists:brands,id',
+        'name_en' => 'required|string|max:255',
+        'name_ar' => 'required|string|max:255',
+        'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        'color_code' => 'nullable|string|max:7',
+    ]);
 
-        $category = MainCategories::create($data);
+    if ($request->hasFile('image_url')) {
+        $validated['image_url'] = $request->file('image_url')->store('main_categories', 'public');
+    }
+
+        $category = MainCategories::create($validated);
         $data = new MainCategoryResource($category);
         return response()->json(['message'=>'Main Category Created Successfully', 'data'=>$data],201);
     }

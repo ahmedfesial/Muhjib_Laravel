@@ -14,7 +14,17 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    use AuthorizesRequests;
+    // use AuthorizesRequests;
+    public function index()
+{
+    // $this->authorize('viewAny', User::class);
+    $users = User::get();
+    $data = UserResource::collection($users);
+    return response()->json([
+        'message' => 'All Users Retrieved Successfully',
+        'data' => $data,
+    ], 200);
+}
     public function profile(){
         $data = new UserResource(Auth::user());
         return  response()->json([
@@ -39,9 +49,9 @@ class UserController extends Controller
         ]);
     }
     public function Admindashboard(){
-    
+
         // For Super Admin and admin
-         $this->authorize('manageUsers', User::class);
+        //  $this->authorize('manageUsers', User::class);
 
         return response()->json([
             'message' => 'All Users Retrieved Successfully',
@@ -53,8 +63,11 @@ class UserController extends Controller
     {
         // Make Resource
         // User can Register but not create super admin and admin can create user
-        $this->authorize('create', User::class);
+        // $this->authorize('create', User::class);
         $data = $request->validated();
+        if ($request->hasFile('image')) {
+        $validated['image'] = $request->file('image')->store('users/images', 'public');
+        }
         $data['password'] = Hash::make($data['password']);
 
         $user = User::create($data);
@@ -78,7 +91,7 @@ class UserController extends Controller
 
     public function updateProfile(UpdateUserRequest $request, User $user)
     {
-        $this->authorize('update', User::class);
+        // $this->authorize('update', User::class);
         $validated = $request->validated();
         if ($request->hasFile('image')) {
         // Delete old image
@@ -104,7 +117,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // Only Super Admin Can delete user
-        $this->authorize('destroy', User::class);
+        // $this->authorize('destroy', User::class);
         $user->delete();
         return response()->json(['message' => 'User deleted successfully.'],200);
     }

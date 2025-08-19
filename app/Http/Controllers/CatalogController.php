@@ -31,13 +31,13 @@ class CatalogController extends Controller
     }
 
     public function store(StoreCatalogRequest $request)
-    {
-    //    $this->authorize('create', Catalog::class);
+{
+    // $this->authorize('create', Catalog::class);
 
-        $basket = Basket::with(['products'])->findOrFail($request->basket_id);
-        $template = Template::findOrFail($request->template_id);
+    $basket = Basket::with(['products'])->findOrFail($request->basket_id);
+    $template = Template::findOrFail($request->template_id);
 
-       // PDF Generation Logic
+    // PDF Generation Logic
     if (!view()->exists('pdf.templates.custom_template')) {
         return response()->json(['error' => 'PDF view not found'], 404);
     }
@@ -57,22 +57,23 @@ class CatalogController extends Controller
         'created_by' => Auth::id(),
         'pdf_path' => $pdfPath,
     ]);
-        $data =new CatalogResource($catalog);
-        return response()->json([
-            'message' => 'Catalog Created Successfully',
-            'data' => $data
-        ], 201);
-    }
 
-    public function show(Catalog $id)
+    $data = new CatalogResource($catalog);
+
+    return response()->json([
+        'message' => 'Catalog Created Successfully',
+        'data' => $data
+    ], 201);
+}
+    public function show(Catalog $catalog)
     {
-        $this->authorize('view', $id);
-        $catalog= Catalog::find($id);
-        if(!$catalog){
-            return response()->json([
-                'message' => 'Catalog not found.',
-            ], 404);
-        }
+        // $this->authorize('view', $id);
+        // $catalog= Catalog::find($id);
+        // if(!$catalog){
+        //     return response()->json([
+        //         'message' => 'Catalog not found.',
+        //     ], 404);
+        // }
         $data=new CatalogResource($catalog);
         return response()->json([
             'message' => 'Catalog Retrieved Successfully',
@@ -85,7 +86,7 @@ class CatalogController extends Controller
     $request->validate([
         'template_id' => 'required|exists:templates,id',
         'products' => 'required|array',
-        'products.*' => 'exists:products,id', 
+        'products.*' => 'exists:products,id',
     ]);
 
     $template = Template::findOrFail($request->template_id);

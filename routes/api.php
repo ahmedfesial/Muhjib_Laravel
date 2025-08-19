@@ -31,29 +31,23 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\LegandController;
 
-
-// Send email verification link
-Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-    ->middleware(['auth:api']);
-
-// Verify email (via link)
-Route::get('/verify-email/{id}', VerifyEmailController::class)
-    ->middleware(['auth:api']);
-
-// Send password reset link
-Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
-
-// Reset password using token
-Route::post('/reset-password', [NewPasswordController::class, 'store']);
+//  Email Verfication Notification
+Route::post('/email/verify/send', [AuthController::class, 'sendEmailVerificationNotification']);
+//  Email Verfiy
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail']);
+//  Forget Password
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+// Reset Password
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 // Public Routes
 Route::post('register', [RegisteredUserController::class, 'store']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout']);
 
 Route::middleware(['auth:api', 'is_super_admin'])->group(function () {
-    Route::delete('products/delete/{product}', [ProductController::class, 'destroy']);
-    Route::post('/users/create', [UserController::class, 'create']);
+        Route::delete('products/delete/{product}', [ProductController::class, 'destroy']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::post('/users/create', [UserController::class, 'create']);
 });
 Route::middleware(['auth:api', 'is_admin'])->group(function (){
     // view all users
@@ -62,18 +56,18 @@ Route::middleware(['auth:api', 'is_admin'])->group(function (){
 Route::group(['prefix'=>'products'],function(){
     Route::get('/', [ProductController::class, 'index']);
     Route::post('/create', [ProductController::class, 'store']);
-    Route::get('products/show/{product}', [ProductController::class, 'show']);
-    Route::put('update/{product}', [ProductController::class, 'update']);
+    Route::get('/show/{product}', [ProductController::class, 'show']);
+    Route::put('/update/{product}', [ProductController::class, 'update']);
 // Search and Filter Endpoints
-    Route::get('products/search', [ProductController::class, 'search']);
-    Route::get('products/filter', [ProductController::class, 'filter']);
+    Route::get('/search', [ProductController::class, 'search']);
+    Route::get('/filter', [ProductController::class, 'filter']);
     // Update Quantity
-    Route::patch('products/{product}/update-quantity', [ProductController::class, 'updateQuantity']);
+    Route::patch('/{product}/update-quantity', [ProductController::class, 'updateQuantity']);
 });
-// Admin Controller 
+// Admin Controller
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
 Route::get('/admin/users', [AdminController::class, 'manageUsers']);
-// Legand and Certificate 
+// Legand and Certificate
 Route::get('/legands', [LegandController::class, 'index']);
 Route::post('/legands/create', [LegandController::class, 'store']);
 Route::get('/certificates', [CertificateController::class, 'index']);
@@ -187,6 +181,10 @@ Route::get('/profile', [UserController::class, 'profile']);
     Route::put('/profile/{user}', [UserController::class, 'updateProfile']);
     Route::get('/dashboard', [UserController::class, 'dashboard']);
     Route::get('clients/my-clients', [UserController::class, 'showmyclient']);
+Route::get('/user/{user}/baskets', [BasketController::class, 'getUserBaskets']);
+Route::get('/user/catalogs/{catalog}', [CatalogController::class, 'show']);
+Route::get('user/quote-requests', [QuoteRequestController::class, 'userQuoteRequests']);
+
 });
 
 

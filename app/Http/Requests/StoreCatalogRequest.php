@@ -14,14 +14,9 @@ class StoreCatalogRequest extends FormRequest
     public function rules(): array
     {
         return [
-<<<<<<< HEAD
            'name' => 'required|string|max:255',
             'basket_id' => 'required|exists:baskets,id',
-            'template_id' => 'required|exists:templates,id', 
-=======
-            'basket_id' => 'required|exists:baskets,id',
             'template_id' => 'required|exists:templates,id',
->>>>>>> 32df490b19e8a2a1b17762bb0c6e52c36a16550e
         ];
     }
 }

@@ -112,15 +112,45 @@ class ProductController extends Controller
     {
         // $this->authorize('create', Product::class);
 
-        $data = $request->validated();
+        $validated = $request->validate([
+        'name_en' => 'nullable|string|max:255',
+        'name_ar' => 'nullable|string|max:255',
+        'features' => 'nullable|string',
+        'main_color' => 'nullable|string|max:100',
+        'brand_id' => 'nullable|exists:brands,id',
+        'sub_category_id' => 'nullable|exists:sub_categories,id',
+        'main_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'pdf_hs' => 'nullable|file|mimes:pdf|max:10000',
+        'pdf_msds' => 'nullable|file|mimes:pdf|max:10000',
+        'pdf_technical' => 'nullable|file|mimes:pdf|max:10000',
+        'hs_code' => 'nullable|string|max:50',
+        'sku' => 'nullable|string|max:100',
+        'pack_size' => 'nullable|string|max:100',
+        'dimensions' => 'nullable|string|max:100',
+        'capacity' => 'nullable|string|max:100',
+        'specification' => 'nullable|string',
+        'price' => 'nullable|numeric|min:0',
+        'is_visible' => 'boolean',
+        'quantity' => 'required|integer|min:0',
+    ]);
 
-        // Handle image and PDF uploads
-        $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
-        $data['pdf_hs'] = $this->uploadFile($request, 'pdf_hs', 'products/pdfs');
-        $data['pdf_msds'] = $this->uploadFile($request, 'pdf_msds', 'products/pdfs');
-        $data['pdf_technical'] = $this->uploadFile($request, 'pdf_technical', 'products/pdfs');
+    if ($request->hasFile('main_image')) {
+        $validated['main_image'] = $request->file('main_image')->store('products/images', 'public');
+    }
 
-        $product = Product::create($data);
+    if ($request->hasFile('pdf_hs')) {
+        $validated['pdf_hs'] = $request->file('pdf_hs')->store('products/pdfs', 'public');
+    }
+
+    if ($request->hasFile('pdf_msds')) {
+        $validated['pdf_msds'] = $request->file('pdf_msds')->store('products/pdfs', 'public');
+    }
+
+    if ($request->hasFile('pdf_technical')) {
+        $validated['pdf_technical'] = $request->file('pdf_technical')->store('products/pdfs', 'public');
+    }
+
+    $product = Product::create($validated);
         $data = new ProductResource($product);
         return response()->json([
             'message' =>'Product Created Successfully',

@@ -29,6 +29,7 @@ class StoreProductRequest extends FormRequest
             'specification' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
             'is_visible' => 'boolean',
+            'quantity' => 'required|integer|min:0',
         ];
     }
 }

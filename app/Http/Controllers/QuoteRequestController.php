@@ -8,6 +8,7 @@ use App\Models\QuoteRequest;
 use Illuminate\Http\Request;
 use App\Policies\QuoteRequestPolicy;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Auth;
 
 class QuoteRequestController extends Controller
 {
@@ -85,4 +86,18 @@ class QuoteRequestController extends Controller
             'data' => $data
         ],200);
     }
+
+    public function userQuoteRequests()
+{
+    $user = Auth::user();
+
+    $quoteRequests = QuoteRequest::where('assigned_to', $user->id)->latest()->paginate(10);
+
+    $data = QuoteRequestResource::collection($quoteRequests);
+
+    return response()->json([
+        'message' => 'Your Quote Requests Retrieved Successfully',
+        'data' => $data,
+    ], 200);
+}
 }
