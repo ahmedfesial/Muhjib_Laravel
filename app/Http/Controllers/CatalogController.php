@@ -132,11 +132,10 @@ class CatalogController extends Controller
 
     // المنتجات
     foreach ($products as $index => $product) {
-        $main_image = $product->main_image ?? 'https://via.placeholder.com/200';
-
+        $main_image = $product->main_image ? Storage::url($product->main_image) : 'https://via.placeholder.com/200';
         $html .= '
         <div class="product">
-            <img src="' . $product->$main_image . '" alt="Product Image">
+            <img src="' . $main_image . '" alt="Product Image">
             <div class="product-name">' . $product->name_en . '</div>
             <div class="product-specification">' . ($product->specification ?? 'No description available') . '</div>
             <div class="product-price">Price: ' . number_format($product->price, 2) . ' EGP</div>
