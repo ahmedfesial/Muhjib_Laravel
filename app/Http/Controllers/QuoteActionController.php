@@ -34,22 +34,20 @@ class QuoteActionController extends Controller
             'data' => $data
         ],201);
     }
+    
     public function forwardtouser(Request $request){
         // Super Admin can forward client to any user
         $request->validate([
         'quote_action_id' => 'required|exists:quote_actions,id',
-        'user_id' => 'required|exists:users,id',
         'forwarded_to_user_id' => 'required|exists:users,id'
     ]);
-
     $quoteAction = QuoteAction::find($request->quote_action_id);
-    $quoteAction->forwarded_to_user_id = $request->user_id;
+    $quoteAction->forwarded_to_user_id = $request->forwarded_to_user_id;
     $quoteAction->save();
-    $data =new QuoteActionResource($quoteAction);
 
     return response()->json([
         'message' => 'Quotation forwarded successfully',
-        'data' => $data
+        'data' => new QuoteActionResource($quoteAction)
     ], 200);
     }
 
