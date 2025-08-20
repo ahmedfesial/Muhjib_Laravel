@@ -15,7 +15,7 @@ class UpdateClientsRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-        'email' => 'nullable|email|unique:clients,email,' . $this->id,
+        'email' => 'nullable|email|' . $this->id,
         'phone' => 'nullable|string|max:20',
         'company' => 'nullable|string|max:255',
         'default_price_type' => 'nullable|string',
