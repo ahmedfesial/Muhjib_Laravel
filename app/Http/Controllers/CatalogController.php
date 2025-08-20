@@ -136,7 +136,7 @@ class CatalogController extends Controller
 
         $html .= '
         <div class="product">
-            <img src="' . $main_image . '" alt="Product Image">
+            <img src="' . $product->$main_image . '" alt="Product Image">
             <div class="product-name">' . $product->name_en . '</div>
             <div class="product-specification">' . ($product->specification ?? 'No description available') . '</div>
             <div class="product-price">Price: ' . number_format($product->price, 2) . ' EGP</div>
