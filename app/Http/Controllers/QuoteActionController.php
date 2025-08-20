@@ -38,7 +38,8 @@ class QuoteActionController extends Controller
         // Super Admin can forward client to any user
         $request->validate([
         'quote_action_id' => 'required|exists:quote_actions,id',
-        'user_id' => 'required|exists:users,id'
+        'user_id' => 'required|exists:users,id',
+        'forwarded_to_user_id' => 'required|exists:users,id'
     ]);
 
     $quoteAction = QuoteAction::find($request->quote_action_id);
@@ -51,7 +52,7 @@ class QuoteActionController extends Controller
         'data' => $data
     ], 200);
     }
-    
+
     public function requestPriceChange(Request $request, $quoteId)
     {
     $request->validate([
@@ -114,7 +115,7 @@ class QuoteActionController extends Controller
     $data =$quote;
     return response()->json([
         'message' => 'Price change approved and applied.',
-        'data' => $data 
+        'data' => $data
     ]);
 }
 public function rejectPriceChange($requestId)
