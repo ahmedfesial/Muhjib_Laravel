@@ -15,7 +15,7 @@ class StoreQuoteActionRequest extends FormRequest
     {
         return [
             'quote_request_id' => ['required', 'exists:quote_requests,id'],
-            'user_id' => ['required', 'exists:users,id'],
+            'user_id' => ['nullable', 'exists:users,id'],
             'action' => ['required', 'in:created,updated,transferred,approved,rejected'],
             'note' => ['nullable', 'string'],
         ];
