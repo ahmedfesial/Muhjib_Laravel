@@ -20,7 +20,8 @@ class UpdateClientsRequest extends FormRequest
         'company' => 'nullable|string|max:255',
         'default_price_type' => 'nullable|string',
         'status' => 'nullable|in:active,inactive',
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'created_by_user_id' => 'nullable|exists:users,id',
         ];
     }
 }

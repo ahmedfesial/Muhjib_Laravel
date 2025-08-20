@@ -21,7 +21,7 @@ class StoreClientsRequest extends FormRequest
         'default_price_type' => 'nullable|string',
         'status' => 'nullable|in:active,inactive',
         'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'created_by_user_id' => 'required|exists:users,id',
+        'created_by_user_id' => 'nullable|exists:users,id',
     ];
     }
 }
