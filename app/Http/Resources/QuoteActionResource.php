@@ -13,6 +13,7 @@ class QuoteActionResource extends JsonResource
             'id' => $this->id,
             'quote_request_id' => $this->quote_request_id,
             'user_id' => $this->user_id,
+            'forwarded_to_user_id' => $this->forwarded_to_user_id,
             'action' => $this->action,
             'note' => $this->note,
             'created_at' => $this->created_at,
