@@ -53,7 +53,7 @@ class ClientsController extends Controller
     {
         // $this->authorize('create', Client::class);
         $client = Client::create($request->validated());
-        $validated['created_by_user_id'] = Auth::id();
+        // $validated['created_by_user_id'] = Auth::id();
         // Handle file upload
     if ($request->hasFile('logo')) {
         $validated['logo'] = $request->file('logo')->store('clients/logos', 'public');
