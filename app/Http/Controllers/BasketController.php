@@ -56,12 +56,14 @@ public function filter(Request $request)
 
     $basket = Basket::create($basketData);
 
+    if (!empty($products)) {
     foreach ($products as $product) {
         $basket->basketProducts()->create([
             'product_id' => $product['product_id'],
             'quantity' => $product['quantity'],
             'price' => $product['price'] ?? 0,
         ]);
+    }
     }
 
     $basket->load(['client', 'creator', 'basketProducts.product']);
