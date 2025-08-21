@@ -16,6 +16,10 @@ class Basket extends Model
 
     protected $fillable = ['name' ,'client_id', 'created_by', 'include_price_flag', 'status'];
 
+    public function basketProducts()
+{
+    return $this->hasMany(BasketProduct::class, 'basket_id');
+}
     public function client() {
         return $this->belongsTo(Client::class);
     }

@@ -26,7 +26,11 @@ class StoreBasketsRequest extends FormRequest
         'client_id' => 'required|exists:clients,id',
         'created_by' => 'required|exists:users,id',
         'include_price_flag' => 'boolean',
-        'status' => 'required|string|in:pending,in_progress,done',
+        'status' => 'nullable|string|in:pending,in_progress,done',
+        'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.price' => 'nullable|numeric|min:0',
     ];
     }
 }

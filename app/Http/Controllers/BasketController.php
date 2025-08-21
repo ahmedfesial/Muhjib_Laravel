@@ -17,7 +17,7 @@ class BasketController extends Controller
     {
         // $this->authorize('viewAny', Basket::class);
 
-        $baskets = Basket::with(['client', 'creator', 'products'])->paginate(10);
+        $baskets = Basket::with(['client', 'creator', 'basketProducts.product'])->paginate(10);
             $data = BasketResource::collection($baskets);
             return response()->json([
                 'message' => 'Baskets Retrieved Successfully',
@@ -44,15 +44,36 @@ public function filter(Request $request)
     public function store(StoreBasketsRequest $request)
     {
         // $this->authorize('create', Basket::class);
-        $basket = Basket::create($request->validated());
-        $data =new BasketResource($basket);
-        return response()->json(['message'=>'Baskets Created Successfully', 'data' => $data],201);
+       $basketData = $request->only([
+        'name', 'client_id', 'created_by', 'include_price_flag', 'status'
+    ]);
+
+    $products = $request->input('products');
+
+    $basket = Basket::create($basketData);
+
+    foreach ($products as $product) {
+        $basket->basketProducts()->create([
+            'product_id' => $product['product_id'],
+            'quantity' => $product['quantity'],
+            'price' => $product['price'] ?? 0,
+        ]);
+    }
+
+    $basket->load(['client', 'creator', 'basketProducts.product']);
+
+    $data = new BasketResource($basket);
+
+    return response()->json([
+        'message' => 'Basket Created Successfully',
+        'data' => $data
+    ], 201);
     }
 
     public function show($id)
     {
         // $this->authorize('view', $id);
-        $basket = Basket::find($id);
+        $basket = Basket::with(['client', 'creator', 'basketProducts.product'])->find($id);
         if (!$basket) {
             return response()->json(['message' => 'Basket not found',], 404);
         }
