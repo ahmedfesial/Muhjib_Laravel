@@ -23,9 +23,10 @@ class StoreBasketProductsRequest extends FormRequest
     {
         return [
         'basket_id' => 'required|exists:baskets,id',
-        'product_id' => 'required|exists:products,id',
-        'quantity' => 'required|integer|min:1',
-        'price' => 'required|numeric|min:0',
+        'products' => 'required|array|min:1',
+        'products.*.product_id' => 'required|exists:products,id',
+        'products.*.quantity' => 'required|integer|min:1',
+        'products.*.price' => 'nullable|numeric|min:0',
     ];
     }
 }

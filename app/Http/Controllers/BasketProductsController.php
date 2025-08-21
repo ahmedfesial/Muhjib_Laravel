@@ -15,10 +15,28 @@ class BasketProductsController extends Controller
     {
         // $this->authorize('create', BasketProduct::class);
 
-        $basketProduct = BasketProduct::create($request->validated());
-        $data =new BasketProductResource($basketProduct);
-        return response()->json(['message'=>'Basket Products Created Successfully', 'data' => $data],201);
-        
+         $basketId = $request->input('basket_id');
+    $products = $request->input('products');
+
+    $createdProducts = [];
+
+    foreach ($products as $productData) {
+        $basketProduct = BasketProduct::create([
+            'basket_id' => $basketId,
+            'product_id' => $productData['product_id'],
+            'quantity' => $productData['quantity'],
+            'price' => $productData['price'] ?? 0,
+        ]);
+
+        $basketProduct->load('product');
+        $createdProducts[] = new BasketProductResource($basketProduct);
+    }
+
+    return response()->json([
+        'message' => 'Basket Products Created Successfully',
+        'data' => $createdProducts,
+    ], 201);
+
     }
 
     public function update(UpdateBasketProductsRequest $request, BasketProduct $basketProduct)
@@ -31,6 +49,7 @@ class BasketProductsController extends Controller
         //     ], 404);
         // }
         $basketProduct->update($request->validated());
+            $basketProduct->load('product'); // تحميل بيانات المنتج
         $data=new BasketProductResource($basketProduct);
         return response()->json(['message'=>'Basket Products Updated Successfully', 'data' => $data],200);
     }
