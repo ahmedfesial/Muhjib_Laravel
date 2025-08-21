@@ -24,10 +24,10 @@ class StoreBasketsRequest extends FormRequest
         return [
         'name' => 'required|string|max:255',
         'client_id' => 'required|exists:clients,id',
-        'created_by' => 'required|exists:users,id',
+        'created_by' => 'nullable|exists:users,id',
         'include_price_flag' => 'boolean',
         'status' => 'nullable|string|in:pending,in_progress,done',
-        'products' => 'required|array|min:1',
+        'products' => 'nullable|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
             'products.*.price' => 'nullable|numeric|min:0',
