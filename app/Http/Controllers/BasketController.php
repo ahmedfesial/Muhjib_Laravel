@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Resources\ClientResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class BasketController extends Controller
 {
@@ -44,10 +45,13 @@ public function filter(Request $request)
     public function store(StoreBasketsRequest $request)
     {
         // $this->authorize('create', Basket::class);
+    $createdBy = $request->input('created_by') ?? (Auth::check() ? Auth::id() : null);
+
        $basketData = $request->only([
-        'name', 'client_id', 'created_by', 'include_price_flag', 'status'
+        'name', 'client_id', 'include_price_flag', 'status'
     ]);
 
+    $basketData['created_by'] = $createdBy;
     $products = $request->input('products');
 
     $basket = Basket::create($basketData);
