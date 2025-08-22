@@ -170,7 +170,9 @@ Route::get('/', [CatalogController::class, 'index']);
 Route::post('/create', [CatalogController::class, 'store']);
 Route::get('/show/{catalog}', [CatalogController::class, 'show']);
 Route::post('/generate',[CatalogController::class,'generateCatalog']);
+
 });
+Route::post('/baskets/{basket}/convert-to-catalog', [CatalogController::class, 'convertToCatalog']);
 
 });
 

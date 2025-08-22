@@ -16,11 +16,14 @@ class BasketProductResource extends JsonResource
     {
         return [
         'id' => $this->id,
-        'basket_id' => $this->basket_id,
         'product_id' => $this->product_id,
+        'product_name' => $this->product->name_en ?? null,
         'quantity' => $this->quantity,
         'price' => $this->price,
-        'product' => new ProductResource($this->whenLoaded('product')),
+        'specification' => $this->product->specification ?? null,
+        'main_image' => $this->product->main_image
+            ? asset('storage/' . $this->product->main_image)
+            : null,
     ];
     }
 }

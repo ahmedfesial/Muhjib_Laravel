@@ -169,6 +169,109 @@ class CatalogController extends Controller
     ]);
 }
 
+public function convertToCatalog(Request $request, Basket $basket)
+{
+    // ✅ Validate input
+    $request->validate([
+        'template_id' => 'required|exists:templates,id',
+        'name' => 'required|string|max:255',
+    ]);
+
+    // ✅ Check if basket already converted
+    if ($basket->status === 'converted') {
+        return response()->json([
+            'message' => 'This basket has already been converted to a catalog.',
+        ], 400);
+    }
+
+    $template = Template::findOrFail($request->template_id);
+
+    // ✅ Load products from basketProducts with related product
+    $basketProducts = $basket->basketProducts()->with('product')->get();
+
+    // ✅ Start generating the HTML for PDF
+    $html = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                body { font-family: DejaVu Sans, sans-serif; margin: 40px; }
+                h1, h2, h3, p { text-align: center; }
+                .product { margin-bottom: 40px; page-break-inside: avoid; }
+                .product img { max-width: 150px; max-height: 150px; display: block; margin: 10px auto; }
+                .product-name { font-size: 18px; font-weight: bold; text-align: center; }
+                .product-description { text-align: center; font-size: 14px; margin-bottom: 10px; }
+                .product-info { text-align: center; font-size: 14px; }
+                .page-break { page-break-after: always; }
+            </style>
+        </head>
+        <body>
+            <h1>' . $request->name . '</h1>
+            <h3>Created for: ' . (Auth::user()->name ?? 'User') . '</h3>
+            <p>Date: ' . now()->format('Y-m-d') . '</p>
+            <div class="page-break"></div>
+    ';
+
+    foreach ($basketProducts as $item) {
+        $product = $item->product;
+        if (!$product) continue;
+
+        $imageUrl = $product->main_image
+            ? asset('storage/' . $product->main_image)
+            : 'https://via.placeholder.com/150';
+
+        $html .= '
+            <div class="product">
+                <img src="' . $imageUrl . '" alt="Product Image" />
+                <div class="product-name">' . $product->name_en . '</div>
+                <div class="product-description">' . ($product->specification ?? 'No description') . '</div>
+                <div class="product-info">Quantity: ' . $item->quantity . '</div>
+                <div class="product-info">Unit Price: ' . number_format($item->price, 2) . ' EGP</div>
+                <div class="product-info">Total: ' . number_format($item->quantity * $item->price, 2) . ' EGP</div>
+            </div>
+        ';
+    }
+
+    $html .= '
+            <div class="page-break"></div>
+            <div style="text-align: center;">
+                <h2>Thank You!</h2>
+                <p>We hope you enjoyed browsing our catalog.</p>
+                <p>Contact us at: support@example.com</p>
+            </div>
+        </body>
+        </html>
+    ';
+
+    // ✅ Generate the PDF
+    $pdf = PDF::loadHTML($html)->setPaper('A4', 'portrait');
+    $pdfPath = 'catalogs/' . Str::uuid() . '.pdf';
+    Storage::disk('public')->put($pdfPath, $pdf->output());
+
+    // ✅ Create the catalog
+    $catalog = Catalog::create([
+        'name' => $request->name,
+        'basket_id' => $basket->id,
+        'template_id' => $template->id,
+        'created_by' => Auth::id(),
+        'pdf_path' => $pdfPath,
+    ]);
+
+    // ✅ Update basket status
+    $basket->status = 'done';
+    $basket->save();
+
+    // ✅ Load relationships for API response
+    $catalog->load('basket.basketProducts.product', 'template', 'creator');
+
+    return response()->json([
+        'message' => 'Basket converted to catalog successfully.',
+        'data' => new CatalogResource($catalog),
+    ], 201);
+}
+
+
     // public function update(UpdateCatalogRequest $request, Catalog $catalog)
     // {
     //     $this->authorize('update', $catalog);

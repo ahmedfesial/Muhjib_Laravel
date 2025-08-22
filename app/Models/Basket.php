@@ -29,8 +29,10 @@ class Basket extends Model
     }
 
     public function products() {
-        return $this->hasMany(BasketProduct::class);
-    }
+return $this->belongsToMany(Product::class, 'basket_products')
+                ->withPivot('quantity', 'price') // عشان تجيب البيانات الإضافية
+                ->withTimestamps();
+                }
     public function catalog() { return $this->hasOne(Catalog::class); }
     public function scopeFilter($query, $filters)
     {
