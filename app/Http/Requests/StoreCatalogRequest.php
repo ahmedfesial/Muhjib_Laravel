@@ -16,7 +16,7 @@ class StoreCatalogRequest extends FormRequest
         return [
            'name' => 'required|string|max:255',
             'basket_id' => 'required|exists:baskets,id',
-            'template_id' => 'required|exists:templates,id',
+            'template_id' => 'nullable|exists:templates,id',
         ];
     }
 }
