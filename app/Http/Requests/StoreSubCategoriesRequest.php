@@ -14,9 +14,9 @@ class StoreSubCategoriesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'main_category_id' => 'required|exists:main_categories,id',
+            'main_category_id' => 'nullable|exists:main_categories,id',
             'name_en' => 'required|string|max:255',
-            'name_ar' => 'required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
         ];
     }
 }
