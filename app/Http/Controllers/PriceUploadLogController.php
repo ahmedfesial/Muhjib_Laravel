@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Product;
+
 
 class PriceUploadLogController extends Controller
 {
@@ -24,42 +26,63 @@ class PriceUploadLogController extends Controller
         return response()->json(['message'=>'Prices Logs Retrieved Successfully', 'data' => $data],200);
     }
 
-    public function store(StorePriceUploadLogRequest $request)
-    {
-        // $this->authorize('create', PriceUploadLog::class);
+  public function store(StorePriceUploadLogRequest $request)
+{
+    $items = $request->input('items');
+    $updatedItems = [];
 
-        $file = $request->file('file_name');
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        $path = $file->storeAs('price_uploads', $fileName, 'public');
+DB::transaction(function () use ($items, &$updatedCount, &$updatedItems) {
+    foreach ($items as $item) {
+        $product = Product::find($item['product_id']);
 
-        $updatedCount = 0;
+        if ($product) {
+            ProductPrice::updateOrCreate(
+                [
+                    'product_id' => $product->id,
+                    'price_type' => strtoupper($item['price_type']),
+                ],
+                [
+                    'value' => $item['value'],
+                ]
+            );
 
-        DB::transaction(function () use ($file, &$updatedCount) {
-            $collection = Excel::toCollection(null, $file)[0];
+            $updatedItems[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name_en,
+                'price_type' => strtoupper($item['price_type']),
+                'value' => $item['value']
+            ];
 
-            foreach ($collection as $row) {
-                // Assuming Excel columns: product_code | price_type | value
-                $product = \App\Models\Product::first();
-                if ($product) {
-                    ProductPrice::updateOrCreate(
-                        [
-                            'product_id' => $product->id,
-                            'price_type' => $row['price_type']
-                        ],
-                        ['value' => $row['value']]
-                    );
-                    $updatedCount++;
-                }
-            }
-        });
-        $logs = PriceUploadLog::create([
-            'uploaded_by' => Auth::id(),
-            'file_name' => $fileName,
-            'products_updated' => $updatedCount,
-        ]);
-        $data=new PriceUploadLogResource($logs);
-        return response()->json(['message'=>'Prices Logs Created Successfully', 'data' => $data],201);
+            $updatedCount++;
+        }
     }
+});
+
+$log = PriceUploadLog::create([
+    'uploaded_by' => Auth::id(),
+    'file_name' => 'manual_input_' . now()->timestamp,
+    'products_updated' => $updatedCount,
+]);
+
+$user = Auth::user();
+
+return response()->json([
+    'message' => 'Prices updated and logged successfully.',
+    'log' => [
+        'id' => $log->id,
+        'file_name' => $log->file_name,
+        'uploaded_by' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email
+        ],
+        'products_updated' => $log->products_updated,
+        'created_at' => $log->created_at->toDateTimeString(),
+    ],
+    'updated_prices' => $updatedItems
+], 201);
+}
+
 
     public function show(PriceUploadLog $priceUploadLog)
     {

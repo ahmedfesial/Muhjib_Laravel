@@ -45,15 +45,29 @@ class QuoteRequestController extends Controller
 }
 
     public function store(StoreQuoteRequestRequest $request)
-    {
-        // $this->authorize('create', QuoteRequest::class);
-        $quote = QuoteRequest::create($request->validated());
-        $data=new QuoteRequestResource($quote);
-        return response()->json([
-            'message' => 'Quote Request Retrieved Successfully',
-            'data' => $data
-        ],201);
+{
+    $data = $request->only(['client_id', 'assigned_to', 'status']);
+    $data['created_by'] = Auth::id();
+
+    $quoteRequest = QuoteRequest::create($data);
+
+    if ($request->has('products')) {
+        foreach ($request->input('products') as $product) {
+            $quoteRequest->products()->attach($product['product_id'], [
+                'quantity' => $product['quantity'],
+                'price' => $product['price'] ?? 0,
+            ]);
+        }
     }
+
+    $quoteRequest->load(['creator', 'products']);
+
+    return response()->json([
+        'message' => 'Quote Request Created Successfully',
+        'data' => new QuoteRequestResource($quoteRequest),
+    ], 201);
+}
+
 
     public function show($id)
     {

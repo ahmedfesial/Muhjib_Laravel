@@ -15,6 +15,25 @@ class QuoteRequestResource extends JsonResource
             'assigned_to' => $this->assigned_to,
             'status' => $this->status,
             'created_at' => $this->created_at,
+            'creator_name' => $this->creator?->name,
+
+            'creator_products' => $this->creator?->products->map(function ($product) {
+    return [
+        'id' => $product->id,
+        'name' => $product->name,
+        'main_image' => $product->main_image,
+        'specification' => $product->specification,
+        'price' => $product->price,
+    ];
+}),
+'products' => $this->products->map(function ($product) {
+    return [
+        'id' => $product->id,
+        'name_en' => $product->name_en,
+        'quantity' => $product->pivot->quantity,
+        'price' => $product->pivot->price,
+    ];
+}),
         ];
     }
 }

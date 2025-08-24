@@ -22,7 +22,10 @@ class StorePriceUploadLogRequest extends FormRequest
     public function rules(): array
     {
         return [
-        'file_name' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB limit
-    ];
+        'items' => 'required|array',
+        'items.*.product_id' => 'required|exists:products,id',
+        'items.*product_name' => 'sometimes|string',
+        'items.*.price_type' => 'required|in:A,B,C,D',
+        'items.*.value' => 'required|numeric|min:0',    ];
     }
 }

@@ -14,9 +14,14 @@ class StoreQuoteRequestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'client_id' => ['nullable', 'exists:clients,id'],
-            'assigned_to' => ['nullable', 'exists:users,id'],
-            'status' => ['required', 'in:pending,accepted,rejected,transferred'],
-        ];
+        'client_id' => ['nullable', 'exists:clients,id'],
+        'assigned_to' => ['nullable', 'exists:users,id'],
+        'status' => ['required', 'in:pending,accepted,rejected,transferred'],
+        'products' => ['nullable', 'array', 'min:1'],
+        'products.*.name_en' => ['required', 'string', 'max:255'],
+        'products.*.product_id' => ['required', 'exists:products,id'],
+        'products.*.quantity' => ['required', 'integer', 'min:1'],
+        'products.*.price' => ['nullable', 'numeric', 'min:0'],
+    ];
     }
 }

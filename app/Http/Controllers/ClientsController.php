@@ -8,6 +8,8 @@ use App\Http\Resources\ClientResource;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification;
+use App\Models\User;
 class ClientsController extends Controller
 {
     // use AuthorizesRequests;
@@ -49,22 +51,74 @@ class ClientsController extends Controller
     return $query;
 }
 
-    public function store(StoreClientsRequest $request)
-    {
-        // $this->authorize('create', Client::class);
-        $client = Client::create($request->validated());
-        // $validated['created_by_user_id'] = Auth::id();
-        // Handle file upload
-    if ($request->hasFile('logo')) {
-        $validated['logo'] = $request->file('logo')->store('clients/logos', 'public');
+
+    public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'email' => 'nullable|email',
+        'phone' => 'nullable|string',
+        'company' => 'nullable|string',
+        'default_price_type' => 'required|in:A,B,C,D',
+    ]);
+
+    $status = $validated['default_price_type'] !== 'A' ? 'pending' : 'approved';
+
+    $client = Client::create([
+        ...$validated,
+        'created_by_user_id' => Auth::id(),
+        'status' => $status,
+    ]);
+
+    // Send notification to super admins if status is pending
+    if ($status === 'pending') {
+        $superAdmins = User::where('role', 'super_admin')->get();
+
+        foreach ($superAdmins as $admin) {
+            Notification::create([
+                'type' => 'client_approval_request',
+                'sender_id' => Auth::id(),
+                'receiver_id' => $admin->id,
+                'content' => 'A new client with non-default price type was created. Please review.',
+                'related_entity_id' => $client->id,
+            ]);
+        }
     }
 
-        $data =new ClientResource($client);
-        return response()->json([
-            'message' => 'Clients Created Successfully',
-            'data' => $data
-        ],201);
+    return response()->json([
+        'message' => $status === 'pending'
+            ? 'Client created and pending approval.'
+            : 'Client created successfully.',
+        'data' => $client
+    ], 201);
+}
+
+public function approve($id)
+{
+    $client = Client::findOrFail($id);
+
+    if ($client->status !== 'pending') {
+        return response()->json(['message' => 'Client is not pending.'], 400);
     }
+
+    $client->update(['status' => 'approved']);
+
+    return response()->json(['message' => 'Client approved successfully.']);
+}
+
+public function reject($id)
+{
+    $client = Client::findOrFail($id);
+
+    if ($client->status !== 'pending') {
+        return response()->json(['message' => 'Client is not pending.'], 400);
+    }
+
+    $client->update(['status' => 'rejected']);
+
+    return response()->json(['message' => 'Client rejected.']);
+}
+
 
     public function show($id)
     {

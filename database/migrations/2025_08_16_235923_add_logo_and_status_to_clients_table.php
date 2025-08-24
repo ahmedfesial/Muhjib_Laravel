@@ -9,11 +9,15 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+  public function up()
 {
     Schema::table('clients', function (Blueprint $table) {
         $table->string('logo')->nullable()->after('company');
-        $table->string('status')->default('active')->after('logo'); // e.g. active/inactive
+
+        // تعديل status إلى enum
+        $table->enum('status', ['pending', 'approved', 'rejected'])
+              ->default('approved')
+              ->after('logo');
     });
 }
 

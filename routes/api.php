@@ -79,6 +79,9 @@ Route::group(['prefix' => 'clients'], function () {
     Route::get('show/{client}', [ClientsController::class, 'show']);
     Route::put('update/{client}', [ClientsController::class, 'update']);
     Route::delete('delete/{client}', [ClientsController::class, 'destroy']);
+
+Route::post('/{id}/approve', [ClientsController::class, 'approve']);
+Route::post('/{id}/reject', [ClientsController::class, 'reject']);
 });
 // Basket Routes
 Route::group(['prefix'=>'baskets'],function(){

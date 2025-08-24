@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-    //     Schema::table('quote_actions', function (Blueprint $table) {
-    //     $table->decimal('price', 10, 2)->nullable()->after('id');
-    // });
+        Schema::table('products', function (Blueprint $table) {
+    $table->unsignedBigInteger('created_by')->nullable()->after('id');
+    $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
+});
     }
 
     /**
@@ -21,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('quote_actions', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table) {
             //
         });
     }

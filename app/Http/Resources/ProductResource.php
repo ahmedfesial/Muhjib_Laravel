@@ -33,7 +33,7 @@ class ProductResource extends JsonResource
             'dimensions' => $this->dimensions,
             'capacity' => $this->capacity,
             'specification' => $this->specification,
-            'price' => $this->price,
+            'price' => ProductPriceResource::collection($this->whenLoaded('price')),
             'is_visible' => $this->is_visible,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

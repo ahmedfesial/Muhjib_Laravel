@@ -13,7 +13,7 @@ class QuoteRequest extends Model
     use HasFactory;
     protected $table='quote_requests';
 
-    protected $fillable = ['client_id', 'assigned_to', 'status'];
+protected $fillable = ['client_id', 'assigned_to', 'status', 'created_by'];
 
     public function client() {
         return $this->belongsTo(Client::class);
@@ -22,8 +22,19 @@ class QuoteRequest extends Model
     public function handler() {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+    public function creator()
+{
+    return $this->belongsTo(User::class, 'created_by');
+}
 
     public function actions() {
         return $this->hasMany(QuoteAction::class);
     }
+    public function products()
+{
+    return $this->belongsToMany(Product::class, 'quote_request_products')
+                ->withPivot('quantity', 'price')
+                ->withTimestamps();
+}
+
 }
