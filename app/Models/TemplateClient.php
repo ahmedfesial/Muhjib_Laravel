@@ -12,4 +12,8 @@ class TemplateClient extends Model
     {
         return $this->belongsTo(Template::class);
     }
+    public function client()
+{
+    return $this->belongsTo(Client::class);
+}
 }

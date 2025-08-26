@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('template_clients', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('template_id')->constrained()->onDelete('cascade');
-    $table->string('client_name');
-    $table->string('email')->nullable();
-    $table->string('phone')->nullable();
-    $table->text('address')->nullable();
-    $table->timestamps();
+        Schema::table('template_clients', function (Blueprint $table) {
+    $table->unsignedBigInteger('client_id')->nullable(); // للعلاقة بالعميل الحقيقي
+    $table->foreign('client_id')->references('id')->on('clients')->onDelete('set null');
 });
     }
 

@@ -15,46 +15,63 @@ use App\Models\User;
 class TemplateController extends Controller
 {
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string',
-            'description' => 'nullable|string',
-            'logo' => 'nullable|image',
-            'cover_image_start' => 'nullable|image',
-            'cover_image_end' => 'nullable|image',
-        ]);
-        $data['created_by'] = Auth::id();
-        $template = Template::create($data);
+{
+    $data = $request->validate([
+        'name' => 'required|string',
+        'description' => 'nullable|string',
+        'logo' => 'nullable|image',
+        'cover_image_start' => 'nullable|image',
+        'cover_image_end' => 'nullable|image',
+    ]);
 
-        // رفع الصور
-        if ($request->hasFile('logo')) {
-            $data['logo'] = $request->file('logo')->store('templates', 'public');
-        }
+    $data['created_by'] = Auth::id();
 
-        if ($request->hasFile('cover_image_start')) {
-            $data['cover_image_start'] = $request->file('cover_image_start')->store('templates', 'public');
-        }
-
-        if ($request->hasFile('cover_image_end')) {
-            $data['cover_image_end'] = $request->file('cover_image_end')->store('templates', 'public');
-        }
-
-        $template = Template::create($data);
-        return response()->json(['message' => 'Template created', 'template_id' => $template->id]);
+    // رفع الصور قبل إنشاء الـ Template
+    if ($request->hasFile('logo')) {
+        $data['logo'] = $request->file('logo')->store('templates', 'public');
     }
+
+    if ($request->hasFile('cover_image_start')) {
+        $data['cover_image_start'] = $request->file('cover_image_start')->store('templates', 'public');
+    }
+
+    if ($request->hasFile('cover_image_end')) {
+        $data['cover_image_end'] = $request->file('cover_image_end')->store('templates', 'public');
+    }
+
+    // إنشاء التمبليت بعد رفع الصور
+    $template = Template::create($data);
+
+    return response()->json(['message' => 'Template created', 'template_id' => $template->id]);
+}
+
 
     public function addClient(Request $request, Template $template)
-    {
-        $data = $request->validate([
-            'client_name' => 'required|string',
-            'email' => 'nullable|email',
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string',
-        ]);
+{
+    $data = $request->validate([
+        'client_id' => 'required|exists:clients,id',
+    ]);
 
-        $template->client()->create($data);
-        return response()->json(['message' => 'Client data saved']);
+    // لو العميل مضاف بالفعل لنفس التمبليت
+    if ($template->client()->exists()) {
+        return response()->json(['message' => 'Template already has a client'], 400);
     }
+
+    $client = \App\Models\Client::find($data['client_id']);
+
+    $template->client()->create([
+        'client_id' => $client->id,
+        'client_name' => $client->name,
+        'email' => $client->email,
+        'phone' => $client->phone,
+        'address' => $client->address,
+        'logo' => $client->logo,
+    ]);
+
+    return response()->json(['message' => 'Client linked and data saved']);
+}
+
+
 
     public function addProductToTemplate(Request $request, Template $template)
 {
@@ -79,23 +96,30 @@ class TemplateController extends Controller
     return response()->json(['message' => 'Products added to template']);
 }
 
-    public function generatePDF(Template $template)
+public function generatePDF(Template $template)
 {
+    // تحميل العلاقات المطلوبة
     $template->load(['client', 'templateProducts.product', 'creator']);
 
-    $client = $template->client;
+    // استخراج البيانات من التمبليت
+    $client = $template->client; // دي من جدول template_clients
     $templateProducts = $template->templateProducts;
-    $user = $template->creator; // مين أنشأ التمبليت
+    $user = $template->creator;
 
+    // تمرير البيانات لملف Blade للعرض داخل الـ PDF
     $pdf = Pdf::loadView('templates.pdf', compact('template', 'user', 'client', 'templateProducts'))
               ->setPaper('A4', 'portrait');
 
+    // تجهيز اسم ومسار الملف
     $fileName = 'template_' . $template->id . '_' . time() . '.pdf';
     $filePath = 'templates_pdfs/' . $fileName;
 
+    // حفظ الملف داخل storage/public
     Storage::disk('public')->put($filePath, $pdf->output());
 
+    // إرجاع الملف كـ download
     return response()->download(storage_path('app/public/' . $filePath));
 }
+
 
 }

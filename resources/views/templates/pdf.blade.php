@@ -55,11 +55,14 @@
 
 {{-- Page 2: Client + Created By --}}
 <div class="page">
-    <h2>Client Information</h2>
-    <p><strong>Name:</strong> {{ $client->client_name ?? 'N/A' }}</p>
-    <p><strong>Email:</strong> {{ $client->email ?? 'N/A' }}</p>
-    <p><strong>Phone:</strong> {{ $client->phone ?? 'N/A' }}</p>
-    <p><strong>Address:</strong> {{ $client->address ?? 'N/A' }}</p>
+<h2>Client Information</h2>
+<p>Name: {{ $client->client_name }}</p>
+<p>Email: {{ $client->email }}</p>
+<p>Phone: {{ $client->phone }}</p>
+
+@if ($client->logo)
+    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
+@endif
 
     <h2>Created By</h2>
     <p><strong>User:</strong> {{ $user->name }} </p>
