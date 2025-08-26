@@ -48,9 +48,10 @@
         <img src="{{ public_path('storage/'.$template->cover_image_start) }}" style="max-width:100%;height:auto;">
     @endif
     <h1>{{ $template->name }}</h1>
-    @if($template->logo)
-        <img src="{{ public_path('storage/'.$template->logo) }}" width="150">
-    @endif
+
+@if ($client->logo)
+    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
+@endif
 </div>
 
 {{-- Page 2: Client + Created By --}}
@@ -61,7 +62,7 @@
 <p>Phone: {{ $client->phone }}</p>
 
 @if ($client->logo)
-    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
+    <img src="{{ asset('storage/' . $client->logo) }}" width="100">
 @endif
 
     <h2>Created By</h2>
@@ -75,6 +76,10 @@
    {{-- Page 3: Products --}}
 <div class="page">
     <h2>Products</h2>
+
+@if ($client->logo)
+    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
+@endif
     <div class="products">
         @foreach($templateProducts as $tp)
             <div class="product">
@@ -90,6 +95,10 @@
 </div>
 
     {{-- الغلاف النهائي --}}
+
+@if ($client->logo)
+    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
+@endif
     <h2>Thank You</h2>
     <div>
         @if($template->cover_image_end)

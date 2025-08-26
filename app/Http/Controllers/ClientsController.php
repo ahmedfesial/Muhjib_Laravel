@@ -66,6 +66,12 @@ class ClientsController extends Controller
 
     $status = $validated['default_price_type'] !== 'A' ? 'pending' : 'approved';
 
+    // Upload logo if exists
+    if ($request->hasFile('logo')) {
+        $logoPath = $request->file('logo')->store('logos', 'public'); // تخزين في storage/app/public/logos
+        $validated['logo'] = $logoPath;
+    }
+
     $client = Client::create([
         ...$validated,
         'created_by_user_id' => Auth::id(),
@@ -94,6 +100,7 @@ class ClientsController extends Controller
         'data' => $client
     ], 201);
 }
+
 
 public function approve($id)
 {

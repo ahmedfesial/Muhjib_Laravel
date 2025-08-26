@@ -32,5 +32,11 @@ class Client extends Model
         return $this->hasMany(Basket::class);
     }
     public function quoteRequests() { return $this->hasMany(QuoteRequest::class); }
-    
+
+    public function getLogoUrlAttribute()
+{
+    return $this->logo ? asset('storage/' . $this->logo) : null;
+}
+protected $appends = ['logo_url'];
+
 }
