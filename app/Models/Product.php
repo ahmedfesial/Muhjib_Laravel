@@ -34,7 +34,13 @@ class Product extends Model
         'price',
         'is_visible',
         'quantity',
+        'certificates',
+    'legends',
     ];
+    protected $casts = [
+    'certificates' => 'array',
+    'legends' => 'array',
+];
 
     public function brand() {
         return $this->belongsTo(Brand::class);

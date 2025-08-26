@@ -2,15 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Template extends Model
 {
-    use HasFactory;
-    protected $table='templates';
+    protected $fillable = ['name', 'logo','created_by', 'cover_image_start', 'cover_image_end', 'description'];
 
-    protected $fillable = ['name', 'file_path', 'description'];
-
-    public function catalogs() { return $this->hasMany(Catalog::class); }
+    public function client()
+    {
+        return $this->hasOne(TemplateClient::class);
+    }
+public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+    public function products()
+{
+    return $this->hasMany(TemplateProduct::class)->with('product'); // eager load
+}
+public function templateProducts()
+{
+    return $this->hasMany(TemplateProduct::class);
+}
 }

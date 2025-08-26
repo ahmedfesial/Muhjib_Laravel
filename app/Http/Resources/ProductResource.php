@@ -38,6 +38,12 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'quantity' => $this->quantity,
+            'certificates' => collect($this->certificates)->map(function ($path) {
+    return asset('storage/' . $path);
+}),
+'legends' => collect($this->legends)->map(function ($path) {
+    return asset('storage/' . $path);
+}),
         ];
     }
 

@@ -20,68 +20,69 @@ use App\Models\Product;
 class CatalogController extends Controller
 {
     use AuthorizesRequests;
+     // Get all catalogs
     public function index()
     {
-        // $this->authorize('viewAny', Catalog::class);
-        $catalogs = Catalog::with(['basket', 'template'])->latest()->get();
-        $data =CatalogResource::collection($catalogs);
+        $catalogs = Catalog::with(['basket'])->latest()->get();
+        $data = CatalogResource::collection($catalogs);
         return response()->json([
             'message' => 'Catalogs Retrieved Successfully',
-            'data' =>$data
-        ],200);
+            'data' => $data
+        ], 200);
     }
 
-    public function store(StoreCatalogRequest $request)
-{
-    // $this->authorize('create', Catalog::class);
+    // Store a new catalog
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'basket_id' => 'required|exists:baskets,id',
+            'template_id' => 'required|exists:templates,id',
+        ]);
 
-    $basket = Basket::with(['products'])->findOrFail($request->basket_id);
-    $template = Template::findOrFail($request->template_id);
+        $basket = Basket::with('products')->findOrFail($validated['basket_id']);
+        $template = Template::findOrFail($validated['template_id']);
 
-    // PDF Generation Logic
-    if (!view()->exists('pdf.templates.custom_template')) {
-        return response()->json(['error' => 'PDF view not found'], 404);
+        // تأكد إن view PDF موجود
+        if (!view()->exists('pdf.templates.custom_template')) {
+            return response()->json(['error' => 'PDF view not found'], 404);
+        }
+
+        // Generate the PDF
+        $pdf = Pdf::loadView('pdf.templates.custom_template', [
+            'basket' => $basket,
+            'template' => $template,
+        ]);
+
+        // Save PDF file
+        $pdfPath = 'catalogs/' . Str::uuid() . '.pdf';
+        Storage::disk('public')->put($pdfPath, $pdf->output());
+
+        // Save catalog data
+        $catalog = Catalog::create([
+            'name' => $validated['name'],
+            'basket_id' => $validated['basket_id'],
+            'template_id' => $validated['template_id'],
+            'created_by' => Auth::id(),
+            'pdf_path' => $pdfPath,
+        ]);
+        $data = new CatalogResource($catalog);
+        return response()->json([
+            'message' => 'Catalog Created Successfully',
+            'data' => $data
+        ], 201);
     }
 
-    $pdf = PDF::loadView('pdf.templates.custom_template', [
-        'basket' => $basket,
-        'template' => $template,
-    ]);
-
-    $pdfPath = 'catalogs/' . Str::uuid() . '.pdf';
-    Storage::put("public/$pdfPath", $pdf->output());
-
-    $catalog = Catalog::create([
-        'name' => $request->name,
-        'basket_id' => $request->basket_id,
-        'template_id' => $request->template_id,
-        'created_by' => Auth::id(),
-        'pdf_path' => $pdfPath,
-    ]);
-
-    $data = new CatalogResource($catalog);
-
-    return response()->json([
-        'message' => 'Catalog Created Successfully',
-        'data' => $data
-    ], 201);
-}
+    // Show single catalog
     public function show(Catalog $catalog)
     {
-        // $this->authorize('view', $id);
-        // $catalog= Catalog::find($id);
-        // if(!$catalog){
-        //     return response()->json([
-        //         'message' => 'Catalog not found.',
-        //     ], 404);
-        // }
-        $data=new CatalogResource($catalog);
+        $catalog->load('basket.basketProducts.product', 'template', 'creator');
+        $data = new CatalogResource($catalog);
         return response()->json([
             'message' => 'Catalog Retrieved Successfully',
             'data' => $data
-        ],200);
+        ], 200);
     }
-
    public function generateCatalog(Request $request)
 {
     $request->validate([
@@ -269,6 +270,36 @@ public function convertToCatalog(Request $request, Basket $basket)
         'message' => 'Basket converted to catalog successfully.',
         'data' => new CatalogResource($catalog),
     ], 201);
+}
+public function revertToBasket(Request $request, Catalog $catalog)
+{
+    // تحقق من الصلاحية
+    if ($catalog->created_by !== Auth::id()) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    // تحميل الباسكت
+    $basket = $catalog->basket;
+    if (!$basket) {
+        return response()->json(['message' => 'No basket found for this catalog.'], 404);
+    }
+
+    // تغيير الحالة إلى pending
+    $basket->status = 'in_progress';
+    $basket->save();
+
+    // (اختياري) حذف ملف الـ PDF
+    if (Storage::disk('public')->exists($catalog->pdf_path)) {
+        Storage::disk('public')->delete($catalog->pdf_path);
+    }
+
+    // (اختياري) حذف الكاتالوج نفسه
+    $catalog->delete();
+
+    return response()->json([
+        'message' => 'Basket reverted. You can now edit the basket again.',
+        'data' => $basket->load('basketProducts.product'),
+    ]);
 }
 
 

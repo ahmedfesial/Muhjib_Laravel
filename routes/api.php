@@ -10,6 +10,7 @@ use App\Http\Middleware\VerifyCsrfToken;
 use App\Http\Controllers\ContactMessageController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\MainCategoriesController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\SubCategoriesController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\NotificationsController;
@@ -22,7 +23,6 @@ use App\Http\Controllers\ProductPriceController;
 use App\Http\Controllers\BasketController;
 use App\Http\Controllers\BasketProductsController;
 use App\Http\Controllers\PriceUploadLogController;
-use App\Http\Controllers\TempletesController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -30,6 +30,14 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\LegandController;
+use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\GuestCartController;
+
+
+Route::post('/guest/cart/add', [GuestCartController::class, 'addToCart']);
+Route::get('/guest/cart/{guest_token}', [GuestCartController::class, 'viewCart']);
+Route::middleware('auth:api')->post('/cart/sync', [CartController::class, 'syncGuestCart']);
+
 
 //  Email Verfication Notification
 Route::post('/email/verify/send', [AuthController::class, 'sendEmailVerificationNotification']);
@@ -160,13 +168,19 @@ Route::group(['prefix'=>'price-upload-logs'],function(){
     Route::post('/create', [PriceUploadLogController::class, 'store']);
     Route::get('show/{priceUploadLog}', [PriceUploadLogController::class, 'show']);
 });
-// Templates Routes
+// // Templates Routes
 Route::group(['prefix' => 'templates'], function () {
-    Route::get('/', [TempletesController::class, 'index']);
-    Route::post('/create', [TempletesController::class, 'store']);
-    Route::get('show/{id}', [TempletesController::class, 'show']);
-    Route::delete('delete/{id}', [TempletesController::class, 'destroy']);
+ Route::post('/create', [TemplateController::class, 'store']);
+Route::post('/{template}/client', [TemplateController::class, 'addClient']);
+// Route::post('/{template}/products', [TemplateController::class, 'addProduct']);
+Route::post('/{template}/products', [TemplateController::class, 'addProductToTemplate']);
+Route::get('/{template}/pdf', [TemplateController::class, 'generatePDF']);
+    // Route::get('/', [TempletesController::class, 'index']);
+    // Route::post('/create', [TempletesController::class, 'store']);
+    // Route::get('show/{id}', [TempletesController::class, 'show']);
+    // Route::delete('delete/{id}', [TempletesController::class, 'destroy']);
 });
+
 // Catalog Routes
 Route::group(['prefix'=>'catalogs'],function(){
 Route::get('/', [CatalogController::class, 'index']);
@@ -176,6 +190,8 @@ Route::post('/generate',[CatalogController::class,'generateCatalog']);
 
 });
 Route::post('/baskets/{basket}/convert-to-catalog', [CatalogController::class, 'convertToCatalog']);
+Route::post('/catalogs/{catalog}/revert', [CatalogController::class, 'revertToBasket']);
+
 
 });
 

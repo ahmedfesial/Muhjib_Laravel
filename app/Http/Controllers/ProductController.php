@@ -132,6 +132,11 @@ class ProductController extends Controller
         'price' => 'nullable|numeric|min:0',
         'is_visible' => 'boolean',
         'quantity' => 'required|integer|min:0',
+        'certificates' => 'nullable|array',
+        'certificates.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+
+        'legends' => 'nullable|array',
+        'legends.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
     ]);
 
     if ($request->hasFile('main_image')) {
@@ -149,6 +154,23 @@ class ProductController extends Controller
     if ($request->hasFile('pdf_technical')) {
         $validated['pdf_technical'] = $request->file('pdf_technical')->store('products/pdfs', 'public');
     }
+    $certificates = [];
+if ($request->hasFile('certificates')) {
+    foreach ($request->file('certificates') as $file) {
+        $certificates[] = $file->store('products/certificates', 'public');
+    }
+}
+
+$legends = [];
+if ($request->hasFile('legends')) {
+    foreach ($request->file('legends') as $file) {
+        $legends[] = $file->store('products/legends', 'public');
+    }
+}
+
+// ثم أضفهم إلى البيانات قبل الإنشاء
+$validated['certificates'] = $certificates;
+$validated['legends'] = $legends;
 
     $product = Product::create($validated);
         $data = new ProductResource($product);
@@ -196,6 +218,28 @@ class ProductController extends Controller
             $data[$pdfField] = $this->uploadFile($request, $pdfField, 'products/pdfs');
         }
     }
+    if ($request->hasFile('certificates')) {
+    // حذف الصور القديمة
+    foreach ($product->certificates ?? [] as $old) {
+        $this->deleteFile($old);
+    }
+    $certificates = [];
+    foreach ($request->file('certificates') as $file) {
+        $certificates[] = $file->store('products/certificates', 'public');
+    }
+    $data['certificates'] = $certificates;
+}
+
+if ($request->hasFile('legends')) {
+    foreach ($product->legends ?? [] as $old) {
+        $this->deleteFile($old);
+    }
+    $legends = [];
+    foreach ($request->file('legends') as $file) {
+        $legends[] = $file->store('products/legends', 'public');
+    }
+    $data['legends'] = $legends;
+}
         $product->update($data);
         $updatedData=new ProductResource($product);
         return response()->json([
@@ -219,6 +263,13 @@ class ProductController extends Controller
         $this->deleteFile($product->pdf_hs);
         $this->deleteFile($product->pdf_msds);
         $this->deleteFile($product->pdf_technical);
+        foreach ($product->certificates ?? [] as $file) {
+    $this->deleteFile($file);
+}
+
+foreach ($product->legends ?? [] as $file) {
+    $this->deleteFile($file);
+}
         $product->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }

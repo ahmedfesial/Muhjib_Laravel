@@ -13,7 +13,7 @@ class CatalogResource extends JsonResource
         'id' => $this->id,
         'name' => $this->name,
         'basket' => new BasketResource($this->whenLoaded('basket')),
-        'template' => new TemplateResource($this->whenLoaded('template')),
+        'template_id' => $this->template_id,
         'pdf_url' => $this->pdf_path ? asset('storage/' . $this->pdf_path) : null,
         'creator' => $this->creator ? $this->creator->name : null,
         'created_at' => $this->created_at,

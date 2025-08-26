@@ -12,12 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('templates', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('file_path');
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
+    $table->id();
+    $table->string('name');
+    $table->string('logo')->nullable();
+    $table->string('cover_image_start')->nullable();
+    $table->string('cover_image_end')->nullable();
+    $table->text('description')->nullable();
+    $table->timestamps();
+    
+});
+
     }
 
     /**
@@ -25,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('templetes');
+        Schema::dropIfExists('templates');
     }
 };

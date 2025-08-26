@@ -30,6 +30,11 @@ class UpdateProductRequest extends FormRequest
             'price' => 'nullable|nullable|numeric|min:0',
             'is_visible' => 'boolean',
             'quantity' => 'nullable|integer|min:0',
+            'certificates' => 'nullable|array',
+        'certificates.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+
+        'legends' => 'nullable|array',
+        'legends.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
     }
 }
