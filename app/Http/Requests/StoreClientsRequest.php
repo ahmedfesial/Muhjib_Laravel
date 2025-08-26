@@ -19,7 +19,7 @@ class StoreClientsRequest extends FormRequest
         'phone' => 'nullable|string|max:20',
         'company' => 'nullable|string|max:255',
         'default_price_type' => 'nullable|string',
-        'status' => 'nullable|in:active,inactive',
+        'status' => 'nullable|in:pending,approved,rejected',
         'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'created_by_user_id' => 'nullable|exists:users,id',
     ];

@@ -60,6 +60,8 @@ class ClientsController extends Controller
         'phone' => 'nullable|string',
         'company' => 'nullable|string',
         'default_price_type' => 'required|in:A,B,C,D',
+        'status' => 'nullable|in:pending,approved,rejected',
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
     $status = $validated['default_price_type'] !== 'A' ? 'pending' : 'approved';
@@ -136,28 +138,47 @@ public function reject($id)
             ], 200);
     }
 
-    public function update(UpdateClientsRequest $request,Client $client)
-    {
-        // $this->authorize('update', $client);
-        // $client = Client::find($id);
-        // if(!$client){
-        //     return response()->json([
-        //     'message' => 'Clients NOt Found'
-        // ],404);
-        // }
-        $validatedData = $request->validated();
-        // Handle optional logo update
+   public function update(UpdateClientsRequest $request, Client $client)
+{
+    $validated = $request->validated();
+
     if ($request->hasFile('logo')) {
         $validated['logo'] = $request->file('logo')->store('clients/logos', 'public');
     }
 
-        $client->update($validatedData);
-        $data =new ClientResource($client);
-        return response()->json([
-            'message' => 'Clients Updated Successfully',
-            'data' => $data
-        ],200);
+    // لو المستخدم بعت status يدويًا، هنستخدمه
+    // غير كده، نحسبه تلقائيًا بناء على default_price_type
+    if (!isset($validated['status'])) {
+        $validated['status'] = $validated['default_price_type'] !== 'A' ? 'pending' : 'approved';
     }
+
+    $client->update($validated);
+
+    // إرسال إشعار فقط لو الحالة الجديدة "pending"
+    if ($validated['status'] === 'pending') {
+        $superAdmins = User::where('role', 'super_admin')->get();
+
+        foreach ($superAdmins as $admin) {
+            Notification::create([
+                'type' => 'client_approval_request',
+                'sender_id' => Auth::id(),
+                'receiver_id' => $admin->id,
+                'content' => 'Client updated with non-default price type. Please review.',
+                'related_entity_id' => $client->id,
+            ]);
+        }
+    }
+    $data =new ClientResource($client);
+
+    return response()->json([
+        'message' => $validated['status'] === 'pending'
+            ? 'Client updated and pending approval.'
+            : 'Client updated successfully.',
+        'data' => $data
+    ], 200);
+}
+
+
 
     public function destroy(Client $client)
     {
