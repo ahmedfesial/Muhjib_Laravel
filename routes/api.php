@@ -75,11 +75,7 @@ Route::group(['prefix'=>'products'],function(){
 // Admin Controller
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
 Route::get('/admin/users', [AdminController::class, 'manageUsers']);
-// Legand and Certificate
-Route::get('/legands', [LegandController::class, 'index']);
-Route::post('/legands/create', [LegandController::class, 'store']);
-Route::get('/certificates', [CertificateController::class, 'index']);
-Route::post('/certificates/create', [CertificateController::class, 'store']);
+
  // Client Routes
 Route::group(['prefix' => 'clients'], function () {
     Route::get('/', [ClientsController::class, 'index']);
@@ -138,6 +134,9 @@ Route::group(['prefix' => 'brands'], function () {
     Route::get('/{brand}', [BrandController::class, 'show']);
     Route::put('update/{brand}', [BrandController::class, 'update']);
     Route::delete('delete/{brand}', [BrandController::class, 'destroy']);
+    Route::post('/{brand}/toggleStatus', [BrandController::class, 'toggleStatus']);
+    // Route::post('/{brand}/togglestatus', [BrandController::class, 'togglestatus']);
+
 });
 // Main Categories Routes
 Route::group(['prefix' => 'main-categories'], function () {

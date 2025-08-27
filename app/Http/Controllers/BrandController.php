@@ -31,6 +31,8 @@ class BrandController extends Controller
 {
     $query = Brand::query();
 
+    $query->where('is_hidden', false); // جِيب اللي مش متخفيين بس
+
     if ($request->filled('name_en')) {
         $query->where('name_en', 'like', '%' . $request->name_en . '%');
     }
@@ -45,6 +47,25 @@ class BrandController extends Controller
 
     return $query;
 }
+
+public function toggleStatus($id)
+{
+    $brand = Brand::find($id);
+
+    if (!$brand) {
+        return response()->json(['message' => 'Brand not found'], 404);
+    }
+    // Toggle using ternary operator
+    $brand->is_hidden = $brand->is_hidden ? false : true;
+    $brand->save();
+
+    return response()->json([
+        'message' => $brand->is_hidden ? 'hidden' : 'unhidden',
+        'status'  => $brand->is_hidden
+    ], 200);
+}
+
+
 
 
     public function store(Request $request)
@@ -109,33 +130,27 @@ class BrandController extends Controller
     ]);
 
     if ($request->hasFile('logo')) {
-        if ($brand->logo) {
-            Storage::disk('public')->delete($brand->logo);
-        }
         $validated['logo'] = $request->file('logo')->store('brands/logos', 'public');
     }
 
     if ($request->hasFile('background_image_url')) {
-        if ($brand->background_image_url) {
-            Storage::disk('public')->delete($brand->background_image_url);
-        }
         $validated['background_image_url'] = $request->file('background_image_url')->store('brands/backgrounds', 'public');
     }
 
     if ($request->hasFile('catalog_pdf_url')) {
-        if ($brand->catalog_pdf_url) {
-            Storage::disk('public')->delete($brand->catalog_pdf_url);
-        }
         $validated['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
     }
-
+    // dd($validated); // array of validated data
     $brand->update($validated);
+    $data = new BrandResource($brand);
 
     return response()->json([
         'message' => 'Brand updated successfully',
-        'data' => $brand
-    ]);
+        'data' => $data
+    ], 200);
 }
+
+
 
 
     public function destroy(Brand $brand)

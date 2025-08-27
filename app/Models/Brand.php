@@ -13,17 +13,12 @@ class Brand extends Model
     protected $table ='brands';
 
     protected $fillable = [
-       'name_en',
-    'name_ar',
-    'logo',
-    'short_description_en',
-    'short_description_ar',
-    'full_description_en',
-    'full_description_ar',
-    'background_image_url',
-    'color_code',
-    'catalog_pdf_url',
-    ];
+    'name_en', 'name_ar', 'logo',
+    'short_description_en', 'short_description_ar',
+    'full_description_en', 'full_description_ar',
+    'background_image_url', 'color_code', 'catalog_pdf_url',
+    'is_hidden'
+];
 
     public function mainCategories() {
         return $this->hasMany(MainCategories::class);

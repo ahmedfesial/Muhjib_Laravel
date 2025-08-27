@@ -25,7 +25,7 @@ class UpdateBrandRequest extends FormRequest
             'color_code' => 'nullable|string|max:7',
             'catalog_pdf_url' => 'nullable|mimes:pdf|max:10000',
         ];
-
     }
 }
+
 
