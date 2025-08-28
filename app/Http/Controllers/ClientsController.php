@@ -59,16 +59,17 @@ class ClientsController extends Controller
         'email' => 'nullable|email',
         'phone' => 'nullable|string',
         'company' => 'nullable|string',
-        'default_price_type' => 'required|in:A,B,C,D',
+        'default_price_type' => 'nullable|in:A,B,C,D',
         'status' => 'nullable|in:pending,approved,rejected',
         'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
-    $status = $validated['default_price_type'] !== 'A' ? 'pending' : 'approved';
+$priceType = $validated['default_price_type'] ?? 'A'; // لو مش موجود، نخليها 'A'
+$status = $priceType !== 'A' ? 'pending' : 'approved';
 
     // Upload logo if exists
     if ($request->hasFile('logo')) {
-        $logoPath = $request->file('logo')->store('logos', 'public'); // تخزين في storage/app/public/logos
+        $logoPath = $request->file('logo')->store('logos', 'public');
         $validated['logo'] = $logoPath;
     }
 
@@ -156,8 +157,10 @@ public function reject($id)
     // لو المستخدم بعت status يدويًا، هنستخدمه
     // غير كده، نحسبه تلقائيًا بناء على default_price_type
     if (!isset($validated['status'])) {
-        $validated['status'] = $validated['default_price_type'] !== 'A' ? 'pending' : 'approved';
+        $priceType = $validated['default_price_type'] ?? 'A';
+        $validated['status'] = $priceType !== 'A' ? 'pending' : 'approved';
     }
+
 
     $client->update($validated);
 

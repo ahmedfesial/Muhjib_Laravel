@@ -39,31 +39,45 @@
             height: auto;
             margin-bottom: 10px;
         }
+        .logo-top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+        }
+        .centered-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; 
+            text-align: center;
+            position: relative;
+        }
+
     </style>
 </head>
 <body>
     {{-- Page 1: Cover Start --}}
-<div class="page cover">
+<div class="page cover centered-content">
+
     @if($template->cover_image_start)
         <img src="{{ public_path('storage/'.$template->cover_image_start) }}" style="max-width:100%;height:auto;">
     @endif
-    <h1>{{ $template->name }}</h1>
-
-@if ($client->logo)
-    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
-@endif
 </div>
 
 {{-- Page 2: Client + Created By --}}
-<div class="page">
-<h2>Client Information</h2>
-<p>Name: {{ $client->client_name }}</p>
-<p>Email: {{ $client->email }}</p>
-<p>Phone: {{ $client->phone }}</p>
-
-@if ($client->logo)
-    <img src="{{ asset('storage/' . $client->logo) }}" width="100">
-@endif
+<div class="page centered-content">
+    <h1>{{ $template->name }}</h1>
+    @if($template->logo)
+        <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
+    @endif
+    <h2>Client Information</h2>
+    <p><strong>Name:</strong> {{ $client->client_name ?? 'N/A' }}</p>
+    <p><strong>Email:</strong> {{ $client->email ?? 'N/A' }}</p>
+    <p><strong>Phone:</strong> {{ $client->phone ?? 'N/A' }}</p>
+    
 
     <h2>Created By</h2>
     <p><strong>User:</strong> {{ $user->name }} </p>
@@ -74,21 +88,20 @@
 
 
    {{-- Page 3: Products --}}
-<div class="page">
+<div class="page centered-content">
+    @if($template->logo)
+        <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
+    @endif
     <h2>Products</h2>
-
-@if ($client->logo)
-    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
-@endif
-    <div class="products">
+    <div class="products centered-content">
         @foreach($templateProducts as $tp)
-            <div class="product">
+            <div class="product centered-content">
                 @if($tp->image)
-                    <img src="{{ public_path('storage/'.$tp->image) }}">
+                    <img src="{{ public_path('storage/'.$tp->image) }}" class="centered-content">
                 @endif
-                <p><strong>{{ $tp->name }}</strong></p>
-                <p>{{ $tp->description }}</p>
-                <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
+                <p class="centered-content"><strong>{{ $tp->name }}</strong></p>
+                <p class="centered-content">{{ $tp->description }}</p>
+                <p class="centered-content"><strong>Price:</strong> {{ $tp->price }} EGP</p>
             </div>
         @endforeach
     </div>
@@ -96,15 +109,18 @@
 
     {{-- الغلاف النهائي --}}
 
-@if ($client->logo)
-    <img src="{{ public_path('storage/' . $client->logo) }}" width="100">
-@endif
+<div class="page centered-content">
+    @if($template->logo)
+        <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
+    @endif
+
     <h2>Thank You</h2>
-    <div>
-        @if($template->cover_image_end)
-            <img src="{{ public_path('storage/' . $template->cover_image_end) }}" alt="Cover End" style="width:100%;">
-        @endif
-    </div>
+    
+    @if($template->cover_image_end)
+        <img src="{{ public_path('storage/' . $template->cover_image_end) }}" alt="Cover End" style="width:100%;">
+    @endif
+</div>
+
 
 
 </body>

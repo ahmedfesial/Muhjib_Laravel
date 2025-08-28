@@ -32,8 +32,9 @@ class TemplateController extends Controller
     }
 
     if ($request->hasFile('cover_image_start')) {
-        $data['cover_image_start'] = $request->file('cover_image_start')->store('templates', 'public');
+    $data['cover_image_start'] = $request->file('cover_image_start')->store('templates', 'public');
     }
+
 
     if ($request->hasFile('cover_image_end')) {
         $data['cover_image_end'] = $request->file('cover_image_end')->store('templates', 'public');

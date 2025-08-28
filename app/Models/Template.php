@@ -24,4 +24,5 @@ public function templateProducts()
 {
     return $this->hasMany(TemplateProduct::class);
 }
+
 }
