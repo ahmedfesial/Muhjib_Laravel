@@ -33,7 +33,7 @@ use App\Http\Controllers\LegandController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\GuestCartController;
 
-Route::get('/test-lang', function () {
+Route::get('/lang', function () {
     return response()->json([
         'message' => __('messages.message'),
         'welcome' => __('messages.welcome'),
@@ -174,11 +174,10 @@ Route::group(['prefix'=>'price-upload-logs'],function(){
     Route::post('/create', [PriceUploadLogController::class, 'store']);
     Route::get('show/{priceUploadLog}', [PriceUploadLogController::class, 'show']);
 });
-// // Templates Routes
+// Templates Routes
 Route::group(['prefix' => 'templates'], function () {
  Route::post('/create', [TemplateController::class, 'store']);
 Route::post('/{template}/client', [TemplateController::class, 'addClient']);
-// Route::post('/{template}/products', [TemplateController::class, 'addProduct']);
 Route::post('/{template}/products', [TemplateController::class, 'addProductToTemplate']);
 Route::get('/{template}/pdf', [TemplateController::class, 'generatePDF']);
     // Route::get('/', [TempletesController::class, 'index']);

@@ -11,6 +11,8 @@ use App\Models\PriceChangeRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Notification;
+use App\Models\QuoteRequest;
+use App\Http\Resources\QuoteRequestResource;
 class QuoteActionController extends Controller
 {
     use AuthorizesRequests;
@@ -35,21 +37,29 @@ class QuoteActionController extends Controller
         ],201);
     }
     
-    public function forwardtouser(Request $request){
-        // Super Admin can forward client to any user
-        $request->validate([
-        'quote_action_id' => 'required|exists:quote_actions,id',
+    public function forwardToUser(Request $request)
+{
+    // Super Admin can forward quote request to any user
+    $request->validate([
+        'quote_request_id' => 'required|exists:quote_requests,id',
         'forwarded_to_user_id' => 'required|exists:users,id'
     ]);
-    $quoteAction = QuoteAction::find($request->quote_action_id);
-    $quoteAction->forwarded_to_user_id = $request->forwarded_to_user_id;
-    $quoteAction->save();
 
+    $quoteRequest = QuoteRequest::find($request->quote_request_id);
+
+    $quoteRequest->assigned_to = $request->forwarded_to_user_id;
+    $quoteRequest->save();
+
+    // تحميل العلاقات المرتبطة إن وجدت (ضيف أو شيل حسب الحاجة)
+    $quoteRequest->load(['creator', 'products']);
+    $data = new QuoteRequestResource($quoteRequest);
     return response()->json([
-        'message' => 'Quotation forwarded successfully',
-        'data' => new QuoteActionResource($quoteAction)
+        'message' => 'Quote Request forwarded successfully',
+        'data' => $data
     ], 200);
-    }
+}
+
+
 
     public function requestPriceChange(Request $request, $quoteId)
     {
