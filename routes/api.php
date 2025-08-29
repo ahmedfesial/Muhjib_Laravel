@@ -33,6 +33,13 @@ use App\Http\Controllers\LegandController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\GuestCartController;
 
+Route::get('/test-lang', function () {
+    return response()->json([
+        'message' => __('messages.message'),
+        'welcome' => __('messages.welcome'),
+        'locale' => app()->getLocale()
+    ]);
+});
 
 Route::post('/guest/cart/add', [GuestCartController::class, 'addToCart']);
 Route::get('/guest/cart/{guest_token}', [GuestCartController::class, 'viewCart']);
@@ -159,7 +166,7 @@ Route::group(['prefix' => 'sub-categories'], function () {
 Route::group(['prefix' => 'notifications'], function () {
     Route::get('/', [NotificationsController::class, 'index']);
     Route::post('/create', [NotificationsController::class, 'store']);
-    Route::post('/{notification}/mark-as-read', [NotificationsController::class, 'markAsRead']);
+    Route::post('/mark-as-read', [NotificationsController::class, 'markAsRead']);
 });
 // Price Logs Routes
 Route::group(['prefix'=>'price-upload-logs'],function(){

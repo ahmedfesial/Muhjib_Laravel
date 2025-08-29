@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\SetApiLocale::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+
         ]);
 
         $middleware->alias([
@@ -22,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_admin' => IsAdmin::class,
             'is_super_admin' => \App\Http\Middleware\IsSuperAdminMiddleware::class,
             'is_user' => \App\Http\Middleware\IsUserMiddleware::class,
+            'set_api_locale' => \App\Http\Middleware\SetApiLocale::class,
+            
         ]);
 
         //

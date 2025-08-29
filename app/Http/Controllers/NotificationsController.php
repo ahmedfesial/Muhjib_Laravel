@@ -69,7 +69,7 @@ class NotificationsController extends Controller
     // }
     public function markAsRead(Notification $notification)
     {
-        $this->authorize('update', $notification);
+        // $this->authorize('update', $notification);
 
         $notification->update(['status' => 'read']);
 
