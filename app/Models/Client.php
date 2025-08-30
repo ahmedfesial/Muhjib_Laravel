@@ -39,4 +39,9 @@ class Client extends Model
 }
 protected $appends = ['logo_url'];
 
+public function files()
+{
+    return $this->hasMany(ClientFile::class);
+}
+
 }

@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_super_admin' => \App\Http\Middleware\IsSuperAdminMiddleware::class,
             'is_user' => \App\Http\Middleware\IsUserMiddleware::class,
             'set_api_locale' => \App\Http\Middleware\SetApiLocale::class,
+            'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
             
         ]);
 

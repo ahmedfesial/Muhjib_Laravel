@@ -10,6 +10,11 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\ClientFile;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
+
+
 class ClientsController extends Controller
 {
     // use AuthorizesRequests;
@@ -188,7 +193,57 @@ public function reject($id)
     ], 200);
 }
 
+// Company Folder
+public function uploadFiles(Request $request, $clientId)
+{
+    $request->validate([
+        'files' => 'required|array',
+        'files.*' => 'file|mimes:jpeg,jpg,png,gif,mp4,mov,avi,wmv,pdf,xlsx,xls|max:10240',
+    ]);
 
+    $client = Client::findOrFail($clientId);
+    $uploadedFiles = [];
+
+    foreach ($request->file('files') as $file) {
+        $path = $file->store('client_files', 'public');
+
+        $clientFile = ClientFile::create([
+            'client_id' => $client->id,
+            'file_name' => $file->getClientOriginalName(),
+            'file_path' => $path,
+            'file_type' => $file->getClientOriginalExtension(),
+        ]);
+
+        $uploadedFiles[] = $clientFile;
+    }
+
+    return response()->json([
+        'message' => 'Files uploaded successfully.',
+        'data' => $uploadedFiles
+    ], 201);
+}
+public function getClientFiles($clientId)
+{
+    $client = Client::findOrFail($clientId);
+    $files = $client->files;
+
+    return response()->json([
+        'message' => 'Client files retrieved successfully.',
+        'data' => $files
+    ]);
+}
+
+// QR Code
+public function generateQr($clientId)
+{
+    $client = Client::findOrFail($clientId);
+
+    $qrContent = url("/client-folder/{$client->id}"); 
+
+    $qr = QrCode::format('svg')->size(200)->generate($qrContent);
+return response($qr)->header('Content-Type', 'image/svg+xml');
+
+}
 
     public function destroy(Client $client)
     {

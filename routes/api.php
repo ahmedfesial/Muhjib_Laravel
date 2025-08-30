@@ -93,6 +93,13 @@ Route::group(['prefix' => 'clients'], function () {
 
 Route::post('/{id}/approve', [ClientsController::class, 'approve']);
 Route::post('/{id}/reject', [ClientsController::class, 'reject']);
+
+// Company Folder
+Route::post('/{client}/upload-files', [ClientsController::class, 'uploadFiles']);
+Route::get('/{client}/files', [ClientsController::class, 'getClientFiles']);
+
+// QR Code
+Route::get('/{id}/qr', [ClientsController::class, 'generateQr']);
 });
 // Basket Routes
 Route::group(['prefix'=>'baskets'],function(){

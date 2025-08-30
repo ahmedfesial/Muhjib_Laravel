@@ -40,6 +40,7 @@ class AuthServiceProvider extends ServiceProvider
     \App\Models\PriceUploadLog::class => \App\Policies\PriceUploadLogPolicy::class,
     \App\Models\Template::class => \App\Policies\TempletesPolicy::class,
         User::class => \App\Policies\UserPolicy::class,
+        
 
     ];
 
@@ -49,7 +50,7 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
-
+        
         // Optional: define global gates here
         // Gate::define('admin-only', fn($user) => $user->role === 'admin');
     }
