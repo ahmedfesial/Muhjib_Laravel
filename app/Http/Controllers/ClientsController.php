@@ -19,15 +19,23 @@ class ClientsController extends Controller
 {
     // use AuthorizesRequests;
     public function index(Request $request)
-    {
-        // $this->authorize('viewAny', Client::class);
-         $query = $this->filter($request);
-        $data =ClientResource::collection(Client::paginate(10));
-        return response()->json([
-            'message' => 'Clients Retrieved Successfully',
-            'data' => $data
-        ],200);
+{
+    $user = Auth::user();
+
+    // لو المستخدم Super Admin، يقدر يشوف كل العملاء
+    if ($user->role === 'super_admin') {
+        $clients = Client::paginate(10);
+    } else {
+        // المستخدم العادي يشوف بس العملاء الموافق عليهم
+        $clients = Client::where('status', 'approved')->paginate(10);
     }
+    $data =ClientResource::collection($clients);
+    return response()->json([
+        'message' => 'Clients Retrieved Successfully',
+        'data' => $data,
+    ], 200);
+}
+
 
     private function filter(Request $request)
 {
@@ -238,7 +246,7 @@ public function generateQr($clientId)
 {
     $client = Client::findOrFail($clientId);
 
-    $qrContent = url("/client-folder/{$client->id}"); 
+    $qrContent = url("/client-folder/{$client->id}");
 
     $qr = QrCode::format('svg')->size(200)->generate($qrContent);
 return response($qr)->header('Content-Type', 'image/svg+xml');
