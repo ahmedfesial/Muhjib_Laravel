@@ -16,9 +16,9 @@ class QuoteRequestController extends Controller
     public function index(Request $request)
 {
     // $this->authorize('viewAny', QuoteRequest::class);
-    $quoteRequest = QuoteRequest::get();
+    $query = $this->filter($request);
 
-    $data = QuoteRequestResource::collection($quoteRequest->paginate(40));
+    $data = QuoteRequestResource::collection($query->paginate(40));
     return response()->json([
         'message' => 'Quote Requests Retrieved Successfully',
         'data' => $data
