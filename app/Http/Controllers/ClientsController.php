@@ -213,7 +213,8 @@ public function uploadFiles(Request $request, $clientId)
     $uploadedFiles = [];
 
     foreach ($request->file('files') as $file) {
-        $path = $file->store('client_files', 'public');
+        // تخزين الملف داخل فولدر باسم client_id
+        $path = $file->store("client_files/{$client->id}", 'public');
 
         $clientFile = ClientFile::create([
             'client_id' => $client->id,
@@ -230,6 +231,7 @@ public function uploadFiles(Request $request, $clientId)
         'data' => $uploadedFiles
     ], 201);
 }
+
 public function getClientFiles($clientId)
 {
     $client = Client::findOrFail($clientId);
@@ -240,18 +242,45 @@ public function getClientFiles($clientId)
         'data' => $files
     ]);
 }
+public function viewClientFolder($clientId)
+{
+    $client = Client::findOrFail($clientId);
+    $files = $client->files;
+
+    // ضيف رابط التحميل لكل ملف
+    $filesData = $files->map(function ($file) {
+        return [
+            'id' => $file->id,
+            'file_name' => $file->file_name,
+            'file_type' => $file->file_type,
+            'file_url' => asset('storage/' . $file->file_path),
+        ];
+    });
+
+    return response()->json([
+        'message' => 'Client folder retrieved successfully.',
+        'data' => [
+            'client_id' => $client->id,
+            'client_name' => $client->name,
+            'files' => $filesData
+        ]
+    ]);
+}
+
 
 // QR Code
 public function generateQr($clientId)
 {
     $client = Client::findOrFail($clientId);
 
+    // تأكد إن فيه Route بيروح لـ /client-folder/{id}
     $qrContent = url("/client-folder/{$client->id}");
 
     $qr = QrCode::format('svg')->size(200)->generate($qrContent);
-return response($qr)->header('Content-Type', 'image/svg+xml');
 
+    return response($qr)->header('Content-Type', 'image/svg+xml');
 }
+
 
     public function destroy(Client $client)
     {

@@ -97,6 +97,7 @@ Route::post('/{id}/reject', [ClientsController::class, 'reject']);
 // Company Folder
 Route::post('/{client}/upload-files', [ClientsController::class, 'uploadFiles']);
 Route::get('/{client}/files', [ClientsController::class, 'getClientFiles']);
+Route::get('/client-folder/{id}', [ClientsController::class, 'viewClientFolder']);
 
 // QR Code
 Route::get('/{id}/qr', [ClientsController::class, 'generateQr']);
@@ -217,6 +218,11 @@ Route::get('/profile', [UserController::class, 'profile']);
 Route::get('/user/{user}/baskets', [BasketController::class, 'getUserBaskets']);
 Route::get('/user/catalogs/{catalog}', [CatalogController::class, 'show']);
 Route::get('user/quote-requests', [QuoteRequestController::class, 'userQuoteRequests']);
+    Route::get('products/', [ProductController::class, 'index']);
+    Route::get('products/show/{product}', [ProductController::class, 'show']);
+    Route::get('brands/', [BrandController::class, 'index']);
+    Route::get('main-categories/', [MainCategoriesController::class, 'index']);
+    Route::get('sub-categories/', [SubCategoriesController::class, 'index']);
 
 });
 
