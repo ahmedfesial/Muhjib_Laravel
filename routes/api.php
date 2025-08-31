@@ -132,6 +132,8 @@ Route::group(['prefix' => 'quote-requests'], function () {
     Route::post('/create', [QuoteRequestController::class, 'store']);
     Route::get('show/{quoteRequest}', [QuoteRequestController::class, 'show']);
     Route::put('update/{quoteRequest}', [QuoteRequestController::class, 'update']);
+    Route::post('/approve/{id}', [QuoteRequestController::class, 'approveQuote']);
+    Route::post('/reject/{id}', [QuoteRequestController::class, 'rejectQuote']);
 });
 // Quote Action Routes
 Route::group(['prefix' => 'quote-actions'], function () {

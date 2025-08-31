@@ -37,4 +37,5 @@ protected $fillable = ['client_id', 'assigned_to', 'status', 'created_by'];
                 ->withTimestamps();
 }
 
+
 }

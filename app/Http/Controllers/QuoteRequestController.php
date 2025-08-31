@@ -46,10 +46,11 @@ class QuoteRequestController extends Controller
 
     public function store(StoreQuoteRequestRequest $request)
 {
-    $data = $request->only(['client_id', 'assigned_to', 'status']);
-    $data['created_by'] = Auth::id();
+   $data = $request->only(['client_id', 'assigned_to', 'status']);
+$data['created_by'] = Auth::id();
 
-    $quoteRequest = QuoteRequest::create($data);
+$quoteRequest = QuoteRequest::create($data);
+
 
     if ($request->has('products')) {
         foreach ($request->input('products') as $product) {
@@ -100,6 +101,39 @@ class QuoteRequestController extends Controller
             'data' => $data
         ],200);
     }
+
+public function approveQuote($id)
+{
+    $quote = QuoteRequest::findOrFail($id);
+
+    if ($quote->status !== 'pending') {
+        return response()->json(['message' => 'Quote is not pending.'], 400);
+    }
+
+    $quote->update(['status' => 'approved']);
+
+    // لما الكوت يتقبل، يتم تفعيل العميل
+    if ($quote->client) {
+        $quote->client->update(['status' => 'approved']);
+    }
+
+    return response()->json(['message' => 'Quote approved and client activated.']);
+}
+public function rejectQuote($id)
+{
+    $quote = QuoteRequest::findOrFail($id);
+
+    if ($quote->status !== 'pending') {
+        return response()->json(['message' => 'Quote is not pending.'], 400);
+    }
+
+    $quote->update(['status' => 'rejected']);
+
+    // العميل يفضل مخفي
+    return response()->json(['message' => 'Quote rejected and client hidden.']);
+}
+
+
 
     public function userQuoteRequests()
 {

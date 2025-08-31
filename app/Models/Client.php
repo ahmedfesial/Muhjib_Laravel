@@ -43,5 +43,10 @@ public function files()
 {
     return $this->hasMany(ClientFile::class);
 }
+public function quoteRequest()
+{
+    return $this->hasOne(\App\Models\QuoteRequest::class, 'client_id');
+}
+
 
 }

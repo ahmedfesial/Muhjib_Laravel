@@ -18,23 +18,30 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class ClientsController extends Controller
 {
     // use AuthorizesRequests;
-    public function index(Request $request)
+public function index(Request $request)
 {
     $user = Auth::user();
 
-    // لو المستخدم Super Admin، يقدر يشوف كل العملاء
     if ($user->role === 'super_admin') {
-        $clients = Client::paginate(10);
+        // فقط العملاء اللي عندهم Quote Approved
+        $clients = Client::whereHas('quoteRequest', function ($query) {
+            $query->where('status', 'approved');
+        })->paginate(10);
     } else {
-        // المستخدم العادي يشوف بس العملاء الموافق عليهم
-        $clients = Client::where('status', 'approved')->paginate(10);
+        // العملاء الموافق عليهم ولهم Quote Approved فقط
+        $clients = Client::where('status', 'approved')
+                         ->whereHas('quoteRequest', function ($query) {
+                             $query->where('status', 'approved');
+                         })->paginate(10);
     }
-    $data =ClientResource::collection($clients);
+
+    $data = ClientResource::collection($clients);
     return response()->json([
         'message' => 'Clients Retrieved Successfully',
         'data' => $data,
     ], 200);
 }
+
 
 
     private function filter(Request $request)
