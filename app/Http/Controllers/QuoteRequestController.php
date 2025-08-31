@@ -14,16 +14,16 @@ class QuoteRequestController extends Controller
 {
     use AuthorizesRequests;
     public function index(Request $request)
-    {
-        // $this->authorize('viewAny', QuoteRequest::class);
-            $query = $this->filter($request);
+{
+    // $this->authorize('viewAny', QuoteRequest::class);
+    $quoteRequest = QuoteRequest::get();
 
-        $data =QuoteRequestResource::collection(QuoteRequest::latest()->paginate(10));
-        return  response()->json([
-            'message' => 'Quote Requests Retrieved Successfully',
-            'data' => $data
-        ],200);
-    }
+    $data = QuoteRequestResource::collection($quoteRequest->paginate(40));
+    return response()->json([
+        'message' => 'Quote Requests Retrieved Successfully',
+        'data' => $data
+    ], 200);
+}
 
     private function filter(Request $request)
 {
