@@ -11,7 +11,7 @@ class QuoteRequestResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'client_id' => $this->client_id,
+            'client' => new ClientResource($this->whenLoaded('client')),
             'assigned_to' => $this->assigned_to,
             'status' => $this->status,
             'created_at' => $this->created_at,

@@ -18,7 +18,9 @@ class QuoteRequestController extends Controller
     // $this->authorize('viewAny', QuoteRequest::class);
     $query = $this->filter($request);
 
-    $data = QuoteRequestResource::collection($query->paginate(40));
+$data = QuoteRequestResource::collection(
+    $query->with('client')->paginate(40)
+);
     return response()->json([
         'message' => 'Quote Requests Retrieved Successfully',
         'data' => $data
@@ -61,7 +63,7 @@ $quoteRequest = QuoteRequest::create($data);
         }
     }
 
-    $quoteRequest->load(['creator', 'products']);
+$quoteRequest->load(['creator', 'products', 'client']);
 
     return response()->json([
         'message' => 'Quote Request Created Successfully',
@@ -73,7 +75,7 @@ $quoteRequest = QuoteRequest::create($data);
     public function show($id)
     {
         // $this->authorize('view', $quoteRequest);
-        $quoteRequest = QuoteRequest::find($id);
+$quoteRequest = QuoteRequest::with('client')->find($id);
         if(!$quoteRequest){
             return response()->json([
                 'message'=>'Quote Request Not Found'
