@@ -176,7 +176,7 @@ Route::group(['prefix' => 'sub-categories'], function () {
 Route::group(['prefix' => 'notifications'], function () {
     Route::get('/', [NotificationsController::class, 'index']);
     Route::post('/create', [NotificationsController::class, 'store']);
-    Route::post('/mark-as-read', [NotificationsController::class, 'markAsRead']);
+    Route::post('{notification}/mark-as-read', [NotificationsController::class, 'markAsRead']);
 });
 // Price Logs Routes
 Route::group(['prefix'=>'price-upload-logs'],function(){
