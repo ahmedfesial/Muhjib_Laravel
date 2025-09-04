@@ -23,17 +23,22 @@
         }
         .products {
             display: flex;
-            flex-wrap: wrap;
+            justify-content: center; /* تحطهم في النص أفقياً */
+            gap: 20px; /* المسافة بين الكروت */
+            flex-wrap: nowrap; /* تمنع الكروت من النزول لسطر جديد */
+            overflow-x: auto; /* لو الكروت أكتر من مساحة الشاشة يطلع شريط تمرير أفقي */
         }
+
         .product {
+            width: 220px; /* عرض ثابت للكارت */
             border: 1px solid #ccc;
             border-radius: 5px;
-            padding: 10px;
-            margin: 10px;
-            width: calc(33% - 40px);
+            padding: 15px;
             box-sizing: border-box;
             text-align: center;
         }
+
+
         .product img {
             max-width: 100%;
             height: auto;
@@ -95,23 +100,24 @@
     <h2>Products</h2>
     <div class="products centered-content">
     @foreach($templateProducts as $tp)
-        <div class="product centered-content">
-           @php
-                $imgPath = public_path('storage/' . ltrim($tp->image, '/'));
-            @endphp
+    <div class="product centered-content">
+        @php
+            $relativePath = str_replace(url('/storage') . '/', '', $tp->image);
+            $absolutePath = public_path('storage/' . $relativePath);
+        @endphp
 
-@if($tp->image && file_exists($imgPath))
-    <img src="{{ $imgPath }}" style="max-width:100%; height:auto;">
-@else
-    <img src="{{ public_path('images/placeholder.jpg') }}" style="max-width:100%; height:auto;">
-@endif
+        @if($tp->image && file_exists($absolutePath))
+            <img src="file://{{ $absolutePath }}" style="max-width:100%; height:auto;">
+        @else
+            <img src="{{ public_path('images/placeholder.jpg') }}" style="max-width:100%; height:auto;">
+        @endif
 
+        <p><strong>{{ $tp->name }}</strong></p>
+        <p>{{ $tp->description }}</p>
+        <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
+    </div>
+@endforeach
 
-            <p><strong>{{ $tp->name }}</strong></p>
-            <p>{{ $tp->description }}</p>
-            <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
-        </div>
-    @endforeach
 </div>
 
 </div>
