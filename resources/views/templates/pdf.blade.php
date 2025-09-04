@@ -23,20 +23,20 @@
         }
         .products {
             display: flex;
-            justify-content: center; /* تحطهم في النص أفقياً */
-            gap: 20px; /* المسافة بين الكروت */
-            flex-wrap: nowrap; /* تمنع الكروت من النزول لسطر جديد */
-            overflow-x: auto; /* لو الكروت أكتر من مساحة الشاشة يطلع شريط تمرير أفقي */
+            flex-wrap: wrap; /* عشان لو العدد كبير يتنقل لسطر جديد */
+            justify-content: center; /* عشان يجو في النص */
+            gap: 20px; /* مسافة بين الكروت */
         }
 
         .product {
-            width: 220px; /* عرض ثابت للكارت */
+            width: 250px; /* عرض الكارت، ممكن تزوده أو تنقصه */
             border: 1px solid #ccc;
             border-radius: 5px;
-            padding: 15px;
+            padding: 10px;
             box-sizing: border-box;
             text-align: center;
         }
+
 
 
         .product img {
@@ -114,7 +114,10 @@
 
         <p><strong>{{ $tp->name }}</strong></p>
         <p>{{ $tp->description }}</p>
-        <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
+       <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
+<p><strong>Quantity:</strong> {{ $tp->quantity ?? 1 }}</p>
+<p><strong>Total Price:</strong> {{ number_format(($tp->price * ($tp->quantity ?? 1)), 2) }} EGP</p>
+
     </div>
 @endforeach
 
