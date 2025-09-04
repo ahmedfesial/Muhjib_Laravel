@@ -91,186 +91,119 @@ class CatalogController extends Controller
         'products.*' => 'exists:products,id',
     ]);
 
-    $template = Template::findOrFail($request->template_id);
+    $template = Template::with('client', 'creator')->findOrFail($request->template_id);
     $user = Auth::user();
     $products = Product::whereIn('id', $request->products)->get();
 
+    // إنشاء الـ Catalog في الداتابيز (مؤقتاً)
     $catalog = Catalog::create([
-        'user_id' => $user->id,
-        'template_id' => $template->id,
-        'basket_id' => $request->basket_id,
         'title' => 'My Custom Catalog',
+        'template_id' => $template->id,
+        'created_by' => $user->id,
+        'basket_id' => $request->basket_id, // لو مش مستخدم باسكت
     ]);
 
-    // Start HTML
-    $html = '
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <style>
-            body { font-family: DejaVu Sans, sans-serif; margin: 40px; }
-            h1, h2, h3, p { text-align: center; }
-            .page-break { page-break-after: always; }
-            .product { margin: 30px 0; text-align: center; }
-            .product img { max-width: 200px; max-height: 200px; margin-bottom: 10px; }
-            .product-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-            .product-description { margin-bottom: 5px; font-size: 14px; }
-            .product-price { font-size: 16px; font-weight: bold; color: #333; }
-        </style>
-    </head>
-    <body>
+    // الآن استخدم نفس الفيو المستخدم في التمبليت
+    // ولازم تعدل View `templates.pdf` ليقبل collection من Product بدل TemplateProducts
+    $client = $template->client;
+    $templateProducts = $products; // تمرير الـ products الجاية من المستخدم
 
-        <!-- غلاف أمامي -->
-        <div>
-            <h1>' . $catalog->title . '</h1>
-            <h3>Prepared for: ' . $user->name . '</h3>
-            <p>Date: ' . now()->format('Y-m-d') . '</p>
-        </div>
+    $pdf = Pdf::loadView('templates.pdf', [
+        'template' => $template,
+        'user' => $user,
+        'client' => $client,
+        'templateProducts' => $templateProducts
+    ])->setPaper('A4', 'portrait');
 
-        <div class="page-break"></div>
-    ';
-
-    // المنتجات
-    foreach ($products as $index => $product) {
-        $main_image = $product->main_image ? Storage::url($product->main_image) : 'https://via.placeholder.com/200';
-        $html .= '
-        <div class="product">
-            <img src="' . $main_image . '" alt="Product Image">
-            <div class="product-name">' . $product->name_en . '</div>
-            <div class="product-specification">' . ($product->specification ?? 'No description available') . '</div>
-            <div class="product-price">Price: ' . number_format($product->price, 2) . ' EGP</div>
-        </div>';
-
-
-    }
-
-    // غلاف خلفي
-    $html .= '
-        <div class="page-break"></div>
-        <div>
-            <h1>Thank You!</h1>
-            <p>We hope you enjoyed browsing our catalog.</p>
-            <p>Contact us at: superadmin@gmail.com</p>
-        </div>
-
-    </body>
-    </html>';
-
-    $pdf = Pdf::loadHTML($html)->setPaper('A4', 'portrait');
-
+    // حفظ الملف
     $filename = 'catalog_' . time() . '.pdf';
-    Storage::disk('public')->put($filename, $pdf->output());
+    $filePath = 'catalogs/' . $filename;
+    Storage::disk('public')->put($filePath, $pdf->output());
 
-    $url = Storage::url($filename);
+    // حفظ المسار داخل الكاتالوج
+    $catalog->pdf_path = $filePath;
+    $catalog->save();
 
     return response()->json([
-        'message' => 'Catalog saved successfully.',
-        'file_url' => $url,
+        'message' => 'Catalog PDF Generated Successfully',
+        'file_url' => Storage::url($filePath),
     ]);
 }
 
 public function convertToCatalog(Request $request, Basket $basket)
 {
-    // ✅ Validate input
     $request->validate([
         'template_id' => 'required|exists:templates,id',
         'name' => 'required|string|max:255',
     ]);
 
-    // ✅ Check if basket already converted
+    // Check if basket already converted
     if ($basket->status === 'converted') {
         return response()->json([
             'message' => 'This basket has already been converted to a catalog.',
         ], 400);
     }
 
-    $template = Template::findOrFail($request->template_id);
+    // تحميل التمبليت مع العلاقات المطلوبة
+    $template = Template::with(['client', 'creator'])->findOrFail($request->template_id);
+    $user = Auth::user();
 
-    // ✅ Load products from basketProducts with related product
+    // تحميل المنتجات من الباسكت
     $basketProducts = $basket->basketProducts()->with('product')->get();
 
-    // ✅ Start generating the HTML for PDF
-    $html = '
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body { font-family: DejaVu Sans, sans-serif; margin: 40px; }
-                h1, h2, h3, p { text-align: center; }
-                .product { margin-bottom: 40px; page-break-inside: avoid; }
-                .product img { max-width: 150px; max-height: 150px; display: block; margin: 10px auto; }
-                .product-name { font-size: 18px; font-weight: bold; text-align: center; }
-                .product-description { text-align: center; font-size: 14px; margin-bottom: 10px; }
-                .product-info { text-align: center; font-size: 14px; }
-                .page-break { page-break-after: always; }
-            </style>
-        </head>
-        <body>
-            <h1>' . $request->name . '</h1>
-            <h3>Created for: ' . (Auth::user()->name ?? 'User') . '</h3>
-            <p>Date: ' . now()->format('Y-m-d') . '</p>
-            <div class="page-break"></div>
-    ';
-
-    foreach ($basketProducts as $item) {
+    // تحويل basketProducts إلى نفس شكل templateProducts
+    $templateProducts = $basketProducts->map(function ($item) {
         $product = $item->product;
-        if (!$product) continue;
+        return (object)[
+            'name' => $product->name_en,
+            'description' => $product->specification,
+            'price' => $item->price,
+            'image' => $product->main_image,
+            'quantity' => $item->quantity,
+            'total' => $item->quantity * $item->price,
+        ];
+    });
 
-        $imageUrl = $product->main_image
-            ? asset('storage/' . $product->main_image)
-            : 'https://via.placeholder.com/150';
-
-        $html .= '
-            <div class="product">
-                <img src="' . $imageUrl . '" alt="Product Image" />
-                <div class="product-name">' . $product->name_en . '</div>
-                <div class="product-description">' . ($product->specification ?? 'No description') . '</div>
-                <div class="product-info">Quantity: ' . $item->quantity . '</div>
-                <div class="product-info">Unit Price: ' . number_format($item->price, 2) . ' EGP</div>
-                <div class="product-info">Total: ' . number_format($item->quantity * $item->price, 2) . ' EGP</div>
-            </div>
-        ';
-    }
-
-    $html .= '
-            <div class="page-break"></div>
-            <div style="text-align: center;">
-                <h2>Thank You!</h2>
-                <p>We hope you enjoyed browsing our catalog.</p>
-                <p>Contact us at: support@example.com</p>
-            </div>
-        </body>
-        </html>
-    ';
-
-    // ✅ Generate the PDF
-    $pdf = PDF::loadHTML($html)->setPaper('A4', 'portrait');
-    $pdfPath = 'catalogs/' . Str::uuid() . '.pdf';
-    Storage::disk('public')->put($pdfPath, $pdf->output());
-
-    // ✅ Create the catalog
+    // إنشاء الكتالوج في الداتابيز
     $catalog = Catalog::create([
         'name' => $request->name,
         'basket_id' => $basket->id,
         'template_id' => $template->id,
-        'created_by' => Auth::id(),
-        'pdf_path' => $pdfPath,
+        'created_by' => $user->id,
     ]);
 
-    // ✅ Update basket status
+    // توليد الـ PDF باستخدام نفس View `templates.pdf`
+    $pdf = Pdf::loadView('templates.pdf', [
+        'template' => $template,
+        'user' => $user,
+        'client' => $template->client,
+        'templateProducts' => $templateProducts,
+    ])->setPaper('A4', 'portrait');
+
+    // حفظ الملف
+    $fileName = 'catalog_' . $catalog->id . '_' . time() . '.pdf';
+    $filePath = 'catalogs/' . $fileName;
+    Storage::disk('public')->put($filePath, $pdf->output());
+
+    // تحديث مسار الملف داخل الكتالوج
+    $catalog->update([
+        'pdf_path' => $filePath,
+    ]);
+
+    // تحديث حالة الباسكت
     $basket->status = 'done';
     $basket->save();
 
-    // ✅ Load relationships for API response
+    // تحميل العلاقات للرد
     $catalog->load('basket.basketProducts.product', 'template', 'creator');
 
     return response()->json([
         'message' => 'Basket converted to catalog successfully.',
         'data' => new CatalogResource($catalog),
+        'pdf_url' => Storage::url($filePath),
     ], 201);
 }
+
 public function revertToBasket(Request $request, Catalog $catalog)
 {
     // تحقق من الصلاحية

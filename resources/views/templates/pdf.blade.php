@@ -51,7 +51,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh; 
+            height: 100vh;
             text-align: center;
             position: relative;
         }
@@ -77,7 +77,7 @@
     <p><strong>Name:</strong> {{ $client->client_name ?? 'N/A' }}</p>
     <p><strong>Email:</strong> {{ $client->email ?? 'N/A' }}</p>
     <p><strong>Phone:</strong> {{ $client->phone ?? 'N/A' }}</p>
-    
+
 
     <h2>Created By</h2>
     <p><strong>User:</strong> {{ $user->name }} </p>
@@ -94,17 +94,26 @@
     @endif
     <h2>Products</h2>
     <div class="products centered-content">
-        @foreach($templateProducts as $tp)
-            <div class="product centered-content">
-                @if($tp->image)
-                    <img src="{{ public_path('storage/'.$tp->image) }}" class="centered-content">
-                @endif
-                <p class="centered-content"><strong>{{ $tp->name }}</strong></p>
-                <p class="centered-content">{{ $tp->description }}</p>
-                <p class="centered-content"><strong>Price:</strong> {{ $tp->price }} EGP</p>
-            </div>
-        @endforeach
-    </div>
+    @foreach($templateProducts as $tp)
+        <div class="product centered-content">
+           @php
+                $imgPath = public_path('storage/' . ltrim($tp->image, '/'));
+            @endphp
+
+@if($tp->image && file_exists($imgPath))
+    <img src="{{ $imgPath }}" style="max-width:100%; height:auto;">
+@else
+    <img src="{{ public_path('images/placeholder.jpg') }}" style="max-width:100%; height:auto;">
+@endif
+
+
+            <p><strong>{{ $tp->name }}</strong></p>
+            <p>{{ $tp->description }}</p>
+            <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
+        </div>
+    @endforeach
+</div>
+
 </div>
 
     {{-- الغلاف النهائي --}}
@@ -115,7 +124,7 @@
     @endif
 
     <h2>Thank You</h2>
-    
+
     @if($template->cover_image_end)
         <img src="{{ public_path('storage/' . $template->cover_image_end) }}" alt="Cover End" style="width:100%;">
     @endif
