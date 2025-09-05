@@ -16,7 +16,7 @@
         .cover {
             text-align: center;
             background-color: #f0f0f0;
-            padding: 50px 20px;
+            padding: 10px 10px;
         }
         .cover h1 {
             margin-bottom: 20px;
@@ -64,13 +64,13 @@
     </style>
 </head>
 <body>
-    {{-- Page 1: Cover Start --}}
-<div class="page cover centered-content">
+ {{-- Cover Start Images --}}
+    <div class="page cover centered-content">
 
-    @if($template->cover_image_start)
-        <img src="{{ public_path('storage/'.$template->cover_image_start) }}" style="max-width:100%;height:auto;">
-    @endif
-</div>
+        @foreach($template->startCoverImages as $cover)
+                <img src="{{ public_path('storage/' . $cover->path) }}" style="max-width:100%; height:auto;">
+        @endforeach
+    </div>
 
 {{-- Page 2: Client + Created By --}}
 <div class="page centered-content">
@@ -98,7 +98,6 @@
         <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
     @endif
     <h2>Products</h2>
-    <div class="products centered-content">
     @foreach($templateProducts as $tp)
     <div class="product centered-content">
         @php
@@ -115,31 +114,29 @@
         <p><strong>{{ $tp->name }}</strong></p>
         <p>{{ $tp->description }}</p>
        <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
-<p><strong>Quantity:</strong> {{ $tp->quantity ?? 1 }}</p>
-<p><strong>Total Price:</strong> {{ number_format(($tp->price * ($tp->quantity ?? 1)), 2) }} EGP</p>
+        <p><strong>Quantity:</strong> {{ $tp->quantity ?? 1 }}</p>
+        <p><strong>Total Price:</strong> {{ number_format(($tp->price * ($tp->quantity ?? 1)), 2) }} EGP</p>
 
-    </div>
-@endforeach
-
-</div>
+        @endforeach
 
 </div>
+</div>
+
 
     {{-- الغلاف النهائي --}}
 
-<div class="page centered-content">
-    @if($template->logo)
-        <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
-    @endif
+{{-- Final Cover Images --}}
 
-    <h2>Thank You</h2>
-
-    @if($template->cover_image_end)
-        <img src="{{ public_path('storage/' . $template->cover_image_end) }}" alt="Cover End" style="width:100%;">
-    @endif
+<div class="page">
+    <div class="page centered-content">
+            @if($template->logo)
+        <h2>Thank You</h2>
+                <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
+            @endif
+        @foreach($template->endCoverImages as $cover)
+            <img src="{{ public_path('storage/' . $cover->path) }}" style="width:100%;">
+        @endforeach
+    </div>
 </div>
-
-
-
 </body>
 </html>

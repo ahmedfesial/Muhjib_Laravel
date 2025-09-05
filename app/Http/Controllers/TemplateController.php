@@ -14,34 +14,45 @@ use App\Models\User;
 
 class TemplateController extends Controller
 {
-    public function store(Request $request)
+   public function store(Request $request)
 {
     $data = $request->validate([
         'name' => 'required|string',
         'description' => 'nullable|string',
         'logo' => 'nullable|image',
-        'cover_image_start' => 'nullable|image',
-        'cover_image_end' => 'nullable|image',
+        'cover_image_start.*' => 'nullable|image',
+        'cover_image_end.*' => 'nullable|image',
     ]);
 
     $data['created_by'] = Auth::id();
 
-    // رفع الصور قبل إنشاء الـ Template
     if ($request->hasFile('logo')) {
         $data['logo'] = $request->file('logo')->store('templates', 'public');
     }
 
-    if ($request->hasFile('cover_image_start')) {
-    $data['cover_image_start'] = $request->file('cover_image_start')->store('templates', 'public');
-    }
-
-
-    if ($request->hasFile('cover_image_end')) {
-        $data['cover_image_end'] = $request->file('cover_image_end')->store('templates', 'public');
-    }
-
-    // إنشاء التمبليت بعد رفع الصور
     $template = Template::create($data);
+
+    // رفع صور البداية
+    if ($request->hasFile('cover_image_start')) {
+        foreach ($request->file('cover_image_start') as $image) {
+            $path = $image->store('templates', 'public');
+            $template->coverImages()->create([
+                'path' => $path,
+                'position' => 'start',
+            ]);
+        }
+    }
+
+    // رفع صور النهاية
+    if ($request->hasFile('cover_image_end')) {
+        foreach ($request->file('cover_image_end') as $image) {
+            $path = $image->store('templates', 'public');
+            $template->coverImages()->create([
+                'path' => $path,
+                'position' => 'end',
+            ]);
+        }
+    }
 
     return response()->json(['message' => 'Template created', 'template_id' => $template->id]);
 }
@@ -100,7 +111,13 @@ class TemplateController extends Controller
 public function generatePDF(Template $template)
 {
     // تحميل العلاقات المطلوبة
-    $template->load(['client', 'templateProducts.product', 'creator']);
+$template->load([
+    'client',
+    'templateProducts.product',
+    'creator',
+    'startCoverImages',
+    'endCoverImages',
+]);
 
     // استخراج البيانات من التمبليت
     $client = $template->client; // دي من جدول template_clients
@@ -122,5 +139,23 @@ public function generatePDF(Template $template)
     return response()->download(storage_path('app/public/' . $filePath));
 }
 
+public function uploadCoverImages(Request $request, Template $template)
+{
+    $request->validate([
+        'images.*' => 'required|image',
+        'position' => 'required|in:start,end',
+    ]);
+
+    foreach ($request->file('images') as $image) {
+        $path = $image->store('templates/covers', 'public');
+
+        $template->coverImages()->create([
+            'path' => $path,
+            'position' => $request->position,
+        ]);
+    }
+
+    return response()->json(['message' => 'Images uploaded successfully.']);
+}
 
 }

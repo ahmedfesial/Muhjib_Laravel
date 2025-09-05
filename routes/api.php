@@ -190,6 +190,7 @@ Route::group(['prefix' => 'templates'], function () {
 Route::post('/{template}/client', [TemplateController::class, 'addClient']);
 Route::post('/{template}/products', [TemplateController::class, 'addProductToTemplate']);
 Route::get('/{template}/pdf', [TemplateController::class, 'generatePDF']);
+Route::post('/{template}/cover-images', [TemplateController::class, 'uploadCoverImages']);
     // Route::get('/', [TempletesController::class, 'index']);
     // Route::post('/create', [TempletesController::class, 'store']);
     // Route::get('show/{id}', [TempletesController::class, 'show']);

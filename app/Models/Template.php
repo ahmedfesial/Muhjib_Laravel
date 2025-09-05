@@ -24,5 +24,19 @@ public function templateProducts()
 {
     return $this->hasMany(TemplateProduct::class);
 }
+public function coverImages()
+{
+    return $this->hasMany(TemplateCoverImage::class);
+}
+
+public function startCoverImages()
+{
+    return $this->coverImages()->where('position', 'start');
+}
+
+public function endCoverImages()
+{
+    return $this->coverImages()->where('position', 'end');
+}
 
 }
