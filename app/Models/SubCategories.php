@@ -10,7 +10,7 @@ class SubCategories extends Model
     use HasFactory;
     protected $table='sub_categories';
 
-    protected $fillable = ['main_category_id', 'name_en', 'name_ar'];
+    protected $fillable = ['main_category_id', 'name_en', 'name_ar' , 'cover_image' , 'background_image'];
 
     public function mainCategory() {
         return $this->belongsTo(MainCategories::class);

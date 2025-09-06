@@ -7,6 +7,7 @@ use App\Http\Requests\StoreSubCategoriesRequest;
 use App\Http\Requests\UpdateSubCategoriesRequest;
 use App\Http\Resources\SubCategoryResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class SubCategoriesController extends Controller
 {
@@ -66,5 +67,27 @@ class SubCategoriesController extends Controller
         $subCategory->delete();
         return response()->json(['message' => 'Deleted successfully'],200);
     }
+
+
+    public function updateSubCategoryImages(Request $request, SubCategories $subCategory)
+{
+    $request->validate([
+        'cover_image' => 'nullable|image',
+        'background_image' => 'nullable|image',
+    ]);
+
+    if ($request->hasFile('cover_image')) {
+        $subCategory->cover_image = $request->file('cover_image')->store('subcategories/covers', 'public');
+    }
+
+    if ($request->hasFile('background_image')) {
+        $subCategory->background_image = $request->file('background_image')->store('subcategories/backgrounds', 'public');
+    }
+
+    $subCategory->save();
+
+    return response()->json(['message' => 'Images updated']);
+}
+
 }
 

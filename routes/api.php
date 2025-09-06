@@ -170,6 +170,7 @@ Route::group(['prefix' => 'sub-categories'], function () {
     Route::get('show/{subCategory}', [SubCategoriesController::class, 'show']);
     Route::put('update/{subCategory}', [SubCategoriesController::class, 'update']);
     Route::delete('delete/{subCategory}', [SubCategoriesController::class, 'destroy']);
+    Route::post('/{subCategory}/upload-images', [SubCategoriesController::class, 'updateSubCategoryImages']);
 });
 
 // Notification Routes

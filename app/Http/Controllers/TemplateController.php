@@ -107,43 +107,46 @@ class TemplateController extends Controller
 
     return response()->json(['message' => 'Products added to template']);
 }
-
 public function generatePDF(Template $template)
 {
-    // تحميل العلاقات المطلوبة
-$template->load([
-    'client',
-    'templateProducts.product',
-    'creator',
-    'startCoverImages',
-    'endCoverImages',
-]);
+    $template->load([
+        'client',
+        'templateProducts.product.subCategory',
+        'creator',
+        'startCoverImages',
+        'endCoverImages',
+    ]);
 
-    // استخراج البيانات من التمبليت
-    $client = $template->client; // دي من جدول template_clients
-    $templateProducts = $template->templateProducts;
+    $client = $template->client;
     $user = $template->creator;
 
-    // تمرير البيانات لملف Blade للعرض داخل الـ PDF
-    $pdf = Pdf::loadView('templates.pdf', compact('template', 'user', 'client', 'templateProducts'))
+    // تأكد تحميل العلاقات
+    $template->templateProducts->load('product.subCategory');
+
+    // جروب المنتجات حسب sub category
+    $groupedProducts = $template->templateProducts->groupBy(function ($item) {
+        return optional($item->product->subCategory)->id;
+    });
+
+    $pdf = Pdf::loadView('templates.pdf', compact('template', 'user', 'client', 'groupedProducts'))
               ->setPaper('A4', 'portrait');
 
-    // تجهيز اسم ومسار الملف
     $fileName = 'template_' . $template->id . '_' . time() . '.pdf';
     $filePath = 'templates_pdfs/' . $fileName;
 
-    // حفظ الملف داخل storage/public
     Storage::disk('public')->put($filePath, $pdf->output());
 
-    // إرجاع الملف كـ download
     return response()->download(storage_path('app/public/' . $filePath));
 }
+
+
 
 public function uploadCoverImages(Request $request, Template $template)
 {
     $request->validate([
         'images.*' => 'required|image',
         'position' => 'required|in:start,end',
+        'background_position' => 'nullable|in:client,products',
     ]);
 
     foreach ($request->file('images') as $image) {
@@ -152,6 +155,7 @@ public function uploadCoverImages(Request $request, Template $template)
         $template->coverImages()->create([
             'path' => $path,
             'position' => $request->position,
+            'background_position' => $request->background_position, // NEW
         ]);
     }
 

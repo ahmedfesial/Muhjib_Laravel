@@ -83,7 +83,7 @@ class CatalogController extends Controller
             'data' => $data
         ], 200);
     }
-   public function generateCatalog(Request $request)
+public function generateCatalog(Request $request)
 {
     $request->validate([
         'template_id' => 'required|exists:templates,id',
@@ -93,34 +93,34 @@ class CatalogController extends Controller
 
     $template = Template::with('client', 'creator')->findOrFail($request->template_id);
     $user = Auth::user();
-    $products = Product::whereIn('id', $request->products)->get();
+
+    // تحميل المنتجات مع الـ SubCategory
+    $products = Product::with('subCategory')->whereIn('id', $request->products)->get();
 
     // إنشاء الـ Catalog في الداتابيز (مؤقتاً)
     $catalog = Catalog::create([
         'title' => 'My Custom Catalog',
         'template_id' => $template->id,
         'created_by' => $user->id,
-        'basket_id' => $request->basket_id, // لو مش مستخدم باسكت
+        'basket_id' => $request->basket_id ?? null,
     ]);
 
-    // الآن استخدم نفس الفيو المستخدم في التمبليت
-    // ولازم تعدل View `templates.pdf` ليقبل collection من Product بدل TemplateProducts
-    $client = $template->client;
-    $templateProducts = $products; // تمرير الـ products الجاية من المستخدم
+    // نجهز groupedProducts
+    $groupedProducts = $products->groupBy(function ($product) {
+        return optional($product->subCategory)->id;
+    });
 
     $pdf = Pdf::loadView('templates.pdf', [
         'template' => $template,
         'user' => $user,
-        'client' => $client,
-        'templateProducts' => $templateProducts
+        'client' => $template->client,
+        'groupedProducts' => $groupedProducts
     ])->setPaper('A4', 'portrait');
 
-    // حفظ الملف
     $filename = 'catalog_' . time() . '.pdf';
     $filePath = 'catalogs/' . $filename;
     Storage::disk('public')->put($filePath, $pdf->output());
 
-    // حفظ المسار داخل الكاتالوج
     $catalog->pdf_path = $filePath;
     $catalog->save();
 
@@ -137,21 +137,18 @@ public function convertToCatalog(Request $request, Basket $basket)
         'name' => 'required|string|max:255',
     ]);
 
-    // Check if basket already converted
     if ($basket->status === 'converted') {
         return response()->json([
             'message' => 'This basket has already been converted to a catalog.',
         ], 400);
     }
 
-    // تحميل التمبليت مع العلاقات المطلوبة
     $template = Template::with(['client', 'creator'])->findOrFail($request->template_id);
     $user = Auth::user();
 
-    // تحميل المنتجات من الباسكت
-    $basketProducts = $basket->basketProducts()->with('product')->get();
+    $basketProducts = $basket->basketProducts()->with('product.subCategory')->get();
 
-    // تحويل basketProducts إلى نفس شكل templateProducts
+    // تحويل إلى شكل templateProducts
     $templateProducts = $basketProducts->map(function ($item) {
         $product = $item->product;
         return (object)[
@@ -161,10 +158,15 @@ public function convertToCatalog(Request $request, Basket $basket)
             'image' => $product->main_image,
             'quantity' => $item->quantity,
             'total' => $item->quantity * $item->price,
+            'product' => $product, // نضيفه علشان نقدر نستخدم subCategory بعدين
         ];
     });
 
-    // إنشاء الكتالوج في الداتابيز
+    // نجمع المنتجات حسب الـ subCategory
+    $groupedProducts = $templateProducts->groupBy(function ($item) {
+        return optional($item->product->subCategory)->id;
+    });
+
     $catalog = Catalog::create([
         'name' => $request->name,
         'basket_id' => $basket->id,
@@ -172,29 +174,25 @@ public function convertToCatalog(Request $request, Basket $basket)
         'created_by' => $user->id,
     ]);
 
-    // توليد الـ PDF باستخدام نفس View `templates.pdf`
+    // 🟢 تمرير المتغير groupedProducts
     $pdf = Pdf::loadView('templates.pdf', [
         'template' => $template,
         'user' => $user,
         'client' => $template->client,
-        'templateProducts' => $templateProducts,
+        'groupedProducts' => $groupedProducts
     ])->setPaper('A4', 'portrait');
 
-    // حفظ الملف
     $fileName = 'catalog_' . $catalog->id . '_' . time() . '.pdf';
     $filePath = 'catalogs/' . $fileName;
     Storage::disk('public')->put($filePath, $pdf->output());
 
-    // تحديث مسار الملف داخل الكتالوج
     $catalog->update([
         'pdf_path' => $filePath,
     ]);
 
-    // تحديث حالة الباسكت
     $basket->status = 'done';
     $basket->save();
 
-    // تحميل العلاقات للرد
     $catalog->load('basket.basketProducts.product', 'template', 'creator');
 
     return response()->json([
