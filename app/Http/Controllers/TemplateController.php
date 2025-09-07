@@ -56,7 +56,30 @@ class TemplateController extends Controller
 
     return response()->json(['message' => 'Template created', 'template_id' => $template->id]);
 }
+public function uploadCoverImages(Request $request, Template $template)
+{
+    $request->validate([
+        'images.*' => 'required|image',
+        'position' => 'required|in:start,end',
+        'background_position' => 'nullable|in:client,products',
+    ]);
 
+    $backgroundPosition = $request->background_position;
+    if (!in_array($backgroundPosition, ['client', 'products'])) {
+        $backgroundPosition = null; // 👈 لو مش valid خليه null
+    }
+
+    foreach ($request->file('images') as $image) {
+        $path = $image->store('templates/covers', 'public');
+
+        $template->coverImages()->create([
+            'path' => $path,
+            'position' => $request->position,
+            'background_position' => $backgroundPosition, // 👈 تم إصلاحها هنا
+        ]);
+    }
+    return response()->json(['message' => 'Images uploaded successfully.']);
+}
 
     public function addClient(Request $request, Template $template)
 {
@@ -141,25 +164,5 @@ public function generatePDF(Template $template)
 
 
 
-public function uploadCoverImages(Request $request, Template $template)
-{
-    $request->validate([
-        'images.*' => 'required|image',
-        'position' => 'required|in:start,end',
-        'background_position' => 'nullable|in:client,products',
-    ]);
-
-    foreach ($request->file('images') as $image) {
-        $path = $image->store('templates/covers', 'public');
-
-        $template->coverImages()->create([
-            'path' => $path,
-            'position' => $request->position,
-            'background_position' => $request->background_position, // NEW
-        ]);
-    }
-
-    return response()->json(['message' => 'Images uploaded successfully.']);
-}
 
 }
