@@ -155,7 +155,7 @@
         <img src="{{ public_path('storage/' . $clientBg->path) }}" class="background-image">
     @endif
     <div class="content centered-content">
-        <h1>{{ $template->name }}</h1>
+        <!-- <h1>{{ $template->name }}</h1> -->
         @if($template->logo)
             <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
         @endif
