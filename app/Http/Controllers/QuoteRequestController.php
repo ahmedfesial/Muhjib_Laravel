@@ -103,24 +103,49 @@ $quoteRequest = QuoteRequest::with('client')->find($id);
             'data' => $data
         ],200);
     }
-
 public function approveQuote($id)
 {
-    $quote = QuoteRequest::findOrFail($id);
+    $quote = QuoteRequest::with(['client', 'products'])->findOrFail($id);
 
     if ($quote->status !== 'pending') {
         return response()->json(['message' => 'Quote is not pending.'], 400);
     }
 
+    // 1. تحديث حالة الكوتيشن
     $quote->update(['status' => 'approved']);
 
-    // لما الكوت يتقبل، يتم تفعيل العميل
+    // 2. تفعيل العميل
     if ($quote->client) {
         $quote->client->update(['status' => 'approved']);
     }
 
-    return response()->json(['message' => 'Quote approved and client activated.']);
+    // 3. إنشاء باسكت جديدة
+    $basket = \App\Models\Basket::create([
+        'name' => 'Basket for Quote ' . $quote->id,
+        'client_id' => $quote->client_id,
+        'status' => 'pending',
+        'created_by' => Auth::id(),
+        'include_price_flag' => true, // حسب تصميمك
+    ]);
+
+    // 4. إضافة المنتجات من الكوتيشن إلى الباسكت
+    foreach ($quote->products as $product) {
+        $basket->basketProducts()->create([
+            'product_id' => $product->id,
+            'quantity' => $product->pivot->quantity,
+            'price' => $product->pivot->price ?? 0,
+        ]);
+    }
+
+    // تحميل العلاقات للسلة
+    $basket->load(['client', 'creator', 'basketProducts.product']);
+
+    return response()->json([
+        'message' => 'Quote approved, client activated, and basket created.',
+        'basket' => new \App\Http\Resources\BasketResource($basket),
+    ]);
 }
+
 public function rejectQuote($id)
 {
     $quote = QuoteRequest::findOrFail($id);
