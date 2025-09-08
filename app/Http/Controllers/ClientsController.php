@@ -12,7 +12,8 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Models\ClientFile;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\File;
 
 
 class ClientsController extends Controller
@@ -209,19 +210,106 @@ public function reject($id)
 }
 
 // Company Folder
+
+public function createClientSubfolder(Request $request, $clientId)
+{
+    $request->validate([
+        'folder_name' => 'required|string|max:255',
+    ]);
+
+    $client = Client::findOrFail($clientId);
+
+    // المسار الكامل
+    $subfolderPath = storage_path("app/public/client_files/{$client->id}/" . $request->folder_name);
+
+    if (File::exists($subfolderPath)) {
+        return response()->json([
+            'message' => 'Folder already exists.',
+        ], 409);
+    }
+
+    File::makeDirectory($subfolderPath, 0755, true); // ينشئ المجلد وأي مجلدات ناقصة في المسار
+
+    return response()->json([
+        'message' => 'Folder created successfully.',
+        'path' => "client_files/{$client->id}/" . $request->folder_name,
+    ], 201);
+}
+
+public function uploadFolder(Request $request, $clientId)
+{
+    $request->validate([
+        'folder_zip' => 'required|file|mimes:zip|max:20480', // 20 MB max, عدل حسب الحاجة
+    ]);
+
+    $client = Client::findOrFail($clientId);
+
+    $zipFile = $request->file('folder_zip');
+
+    $zipPath = $zipFile->store("client_files/{$client->id}/temp", 'public');
+
+    $fullZipPath = storage_path('app/public/' . $zipPath);
+
+    // فك الضغط
+    $zip = new \ZipArchive;
+    if ($zip->open($fullZipPath) === TRUE) {
+        $extractPath = storage_path("app/public/client_files/{$client->id}/");
+        $zip->extractTo($extractPath);
+        $zip->close();
+
+        // امسح ملف ZIP بعد ما تفك الضغط لو حابب
+        unlink($fullZipPath);
+
+        // ممكن هنا تعالج الملفات وتخزن بياناتها في DB لو حابب
+        // مثلا تمشي على كل الملفات المفكوكة وتضيفهم في ClientFile model
+
+        $files = File::allFiles($extractPath);
+
+        $uploadedFiles = [];
+
+        foreach ($files as $file) {
+            // خذ اسم الملف فقط بدون المسار الكامل داخل التخزين
+            $relativePath = str_replace($extractPath, '', $file->getPathname());
+
+            $clientFile = ClientFile::create([
+                'client_id' => $client->id,
+                'file_name' => $file->getFilename(),
+                'file_path' => "client_files/{$client->id}/" . str_replace('\\', '/', $relativePath),
+                'file_type' => $file->getExtension(),
+            ]);
+
+            $uploadedFiles[] = $clientFile;
+        }
+
+        return response()->json([
+            'message' => 'Folder uploaded and extracted successfully.',
+            'data' => $uploadedFiles,
+        ], 201);
+    } else {
+        return response()->json([
+            'message' => 'Failed to open ZIP file.',
+        ], 400);
+    }
+}
+
 public function uploadFiles(Request $request, $clientId)
 {
     $request->validate([
         'files' => 'required|array',
-        'files.*' => 'file|mimes:jpeg,jpg,png,gif,mp4,mov,avi,wmv,pdf,xlsx,xls|max:10240',
+        'files.*' => 'file|max:10240',
+        'folder_name' => 'nullable|string',
     ]);
 
     $client = Client::findOrFail($clientId);
     $uploadedFiles = [];
 
+    $basePath = "client_files/{$client->id}";
+    if ($request->filled('folder_name')) {
+        $basePath .= '/' . $request->folder_name;
+    }
+
     foreach ($request->file('files') as $file) {
-        // تخزين الملف داخل فولدر باسم client_id
-        $path = $file->store("client_files/{$client->id}", 'public');
+        $path = $file->store($basePath, 'public');
 
         $clientFile = ClientFile::create([
             'client_id' => $client->id,
@@ -238,6 +326,7 @@ public function uploadFiles(Request $request, $clientId)
         'data' => $uploadedFiles
     ], 201);
 }
+
 
 public function getClientFiles($clientId)
 {

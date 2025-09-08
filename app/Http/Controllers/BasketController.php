@@ -11,6 +11,7 @@ use App\Http\Resources\ClientResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Events\BasketCreated;
 
 class BasketController extends Controller
 {
@@ -69,6 +70,8 @@ public function filter(Request $request)
     $basket->load(['client', 'creator', 'basketProducts.product']);
 
     $data = new BasketResource($basket);
+        event(new BasketCreated(Auth::user(), $basket));
+
 
     return response()->json([
         'message' => 'Basket Created Successfully',

@@ -16,34 +16,45 @@ class ProductController extends Controller
 {
     use AuthorizesRequests;
     public function index(Request $request)
-    {
-        // $this->authorize('viewAny', Product::class);
-        $query = Product::query();
-        // Check if the request has a search parameter
-        if ($request->has('search')) {
+{
+    $query = Product::query();
+
+    // 🔍 بحث عام (search)
+    if ($request->has('search')) {
         $searchTerm = $request->input('search');
         $query->where(function($q) use ($searchTerm) {
             $q->where('name_en', 'like', "%$searchTerm%")
-              ->orWhere('name_ar', 'like', "%$searchTerm%");
+              ->orWhere('name_ar', 'like', "%$searchTerm%")
+              ->orWhere('sku', 'like', "%$searchTerm%"); // نضيف البحث بالـ SKU في البحث العام
         });
     }
-        // Check if the request has filter parameters
-        if ($request->filled('name_en')) {
-            $query->where('name_en', $request->name_en);
-        }
-        if ($request->filled('brand_id')) {
-            $query->where('brand_id', $request->brand_id);
-        }
-        if ($request->filled('sub_category_id')) {
-            $query->where('sub_category_id', $request->sub_category_id);
-        }
-        $products = $query->paginate(15);
-        $data =ProductResource::collection($products);
-        return response()->json([
-            'message' => 'Products Retrieved Successfully',
-            'data' => $data
-        ],200);
+
+    // ✅ فلترة حسب الحقول
+    if ($request->filled('name_en')) {
+        $query->where('name_en', $request->name_en);
     }
+
+    if ($request->filled('brand_id')) {
+        $query->where('brand_id', $request->brand_id);
+    }
+
+    if ($request->filled('sub_category_id')) {
+        $query->where('sub_category_id', $request->sub_category_id);
+    }
+
+    if ($request->filled('sku')) {
+        $query->where('sku', 'like', '%' . $request->sku . '%'); // فلترة بالـ SKU
+    }
+
+    $products = $query->paginate(15);
+    $data = ProductResource::collection($products);
+
+    return response()->json([
+        'message' => 'Products Retrieved Successfully',
+        'data' => $data
+    ], 200);
+}
+
     private function search(Request $request){
         $query = Product::query();
         if ($search = $request->input('search')) {
@@ -53,19 +64,29 @@ class ProductController extends Controller
             });
         }
     }
-    private function filter(Request $request){
-        $query = Product::query();
-        if ($request->filled('name_en')) {
-            $query->where('name_en', $request->brand_id);
-        }
-        if ($request->filled('brand_id')) {
-            $query->where('brand_id', $request->brand_id);
-        }
+    private function filter(Request $request)
+{
+    $query = Product::query();
 
-        if ($request->filled('sub_category_id')) {
-            $query->where('sub_category_id', $request->sub_category_id);
-        }
+    if ($request->filled('name_en')) {
+        $query->where('name_en', $request->name_en);
     }
+
+    if ($request->filled('brand_id')) {
+        $query->where('brand_id', $request->brand_id);
+    }
+
+    if ($request->filled('sub_category_id')) {
+        $query->where('sub_category_id', $request->sub_category_id);
+    }
+
+    if ($request->filled('sku')) {
+        $query->where('sku', 'like', '%' . $request->sku . '%');
+    }
+
+    return $query;
+}
+
     // helper method inside class
     protected function uploadFile($request, $field, $folder)
 {

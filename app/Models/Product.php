@@ -40,7 +40,10 @@ class Product extends Model
     protected $casts = [
     'certificates' => 'array',
     'legends' => 'array',
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
 ];
+
 
     public function brand() {
         return $this->belongsTo(Brand::class);

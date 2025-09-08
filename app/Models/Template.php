@@ -8,6 +8,11 @@ class Template extends Model
 {
     protected $fillable = ['name', 'logo','created_by', 'cover_image_start', 'cover_image_end', 'description'];
 
+    protected $casts = [
+    'created_at' => 'datetime',
+    'updated_at' => 'datetime',
+    ];
+
     public function client()
     {
         return $this->hasOne(TemplateClient::class);

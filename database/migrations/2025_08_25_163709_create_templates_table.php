@@ -19,7 +19,7 @@ return new class extends Migration
     $table->string('cover_image_end')->nullable();
     $table->text('description')->nullable();
     $table->timestamps();
-    
+
 });
 
     }

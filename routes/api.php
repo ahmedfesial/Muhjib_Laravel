@@ -32,6 +32,11 @@ use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\LegandController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\GuestCartController;
+use App\Http\Controllers\ActivityController;
+        Route::post('/users/create', [UserController::class, 'create']);
+
+Route::get('/activities', [ActivityController::class, 'index']);
+
 
 Route::get('/lang', function () {
     return response()->json([
@@ -62,7 +67,6 @@ Route::post('logout', [AuthController::class, 'logout']);
 Route::middleware(['auth:api', 'is_super_admin'])->group(function () {
         Route::delete('products/delete/{product}', [ProductController::class, 'destroy']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
-        Route::post('/users/create', [UserController::class, 'create']);
 });
 Route::middleware(['auth:api', 'is_admin'])->group(function (){
     // view all users
@@ -95,6 +99,8 @@ Route::post('/{id}/approve', [ClientsController::class, 'approve']);
 Route::post('/{id}/reject', [ClientsController::class, 'reject']);
 
 // Company Folder
+Route::post('/{client}/create-folder', [ClientsController::class, 'createClientSubfolder']);
+Route::post('/{client}/upload-folder', [ClientsController::class, 'uploadFolder']);
 Route::post('/{client}/upload-files', [ClientsController::class, 'uploadFiles']);
 Route::get('/{client}/files', [ClientsController::class, 'getClientFiles']);
 Route::get('/client-folder/{id}', [ClientsController::class, 'viewClientFolder']);
