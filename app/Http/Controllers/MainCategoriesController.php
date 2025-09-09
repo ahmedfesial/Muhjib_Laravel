@@ -55,24 +55,28 @@ class MainCategoriesController extends Controller
     }
 
     public function update(UpdateMainCategoriesRequest $request, MainCategories $mainCategory)
-    {
-        // $this->authorize('update', $mainCategory);
-        // if(!$mainCategory){
-        //     return response()->json([
-        //         'message' => 'Main Category not found.',
-        //     ], 404);
-        // }
-        $validatedata = $request->validated();
+{
+    $validated = $request->validate([
+        'brand_id' => 'nullable|exists:brands,id',
+        'name_en' => 'nullable|string|max:255',
+        'name_ar' => 'nullable|string|max:255',
+        'image_url' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        'color_code' => 'nullable|string|max:7',
+    ]);
 
-        if ($request->hasFile('image')) {
-            $validatedata['image'] = $request->file('image')->store('main_categories', 'public');
-        }
-
-        $mainCategory->update($validatedata);
-        $data = new MainCategoryResource($mainCategory);
-        $data->save();
-        return response()->json(['message' => 'Main Category Updated Successfully', 'data'=> $data],200);
+    if ($request->hasFile('image_url')) {
+        // نخزن الصورة ونحفظ المسار في image_url
+        $validated['image_url'] = $request->file('image_url')->store('main_categories', 'public');
     }
+
+    $mainCategory->update($validated);
+
+    // dd($validatedata);
+    return response()->json([
+        'message' => 'Main Category Updated Successfully',
+        'data' => new MainCategoryResource($mainCategory)
+    ], 200);
+}
 
     public function destroy(MainCategories $mainCategory)
     {

@@ -68,7 +68,7 @@ public function toggleStatus($id)
 
 
 
-    public function store(Request $request)
+public function store(Request $request)
 {
     $validated = $request->validate([
         'name_en' => 'required|string|max:255',
@@ -99,9 +99,10 @@ public function toggleStatus($id)
 
     return response()->json([
         'message' => 'Brand created successfully',
-        'data' => $brand
+        'data' => new BrandResource($brand)
     ], 201);
 }
+
 
 
        public function show($id){

@@ -212,28 +212,85 @@ public function reject($id)
 
 public function createClientSubfolder(Request $request, $clientId)
 {
+    $client = Client::findOrFail($clientId);
+
+    $baseFolderPath = storage_path("app/public/client_files/{$client->id}/");
+
+    // لو مش موجود الاسم، نولده تلقائيًا
+    $folderName = $request->folder_name;
+
+    if (!$folderName) {
+        $counter = 1;
+        do {
+            $folderName = "New Folder {$counter}";
+            $subfolderPath = $baseFolderPath . $folderName;
+            $counter++;
+        } while (File::exists($subfolderPath));
+    } else {
+        $subfolderPath = $baseFolderPath . $folderName;
+    }
+
+    if (File::exists($subfolderPath)) {
+        return response()->json(['message' => 'Folder already exists.'], 409);
+    }
+
+    File::makeDirectory($subfolderPath, 0755, true);
+
+    return response()->json([
+        'message' => 'Folder created successfully.',
+        'folder_name' => $folderName,
+        'path' => "client_files/{$client->id}/{$folderName}",
+    ], 201);
+}
+public function renameClientFolder(Request $request, $clientId)
+{
     $request->validate([
-        'folder_name' => 'nullable|string|max:255',
+        'old_name' => 'required|string',
+        'new_name' => 'required|string',
     ]);
 
     $client = Client::findOrFail($clientId);
 
-    // المسار الكامل
-    $subfolderPath = storage_path("app/public/client_files/{$client->id}/" . $request->folder_name);
+    $basePath = storage_path("app/public/client_files/{$client->id}/");
 
-    if (File::exists($subfolderPath)) {
-        return response()->json([
-            'message' => 'Folder already exists.',
-        ], 409);
+    $oldPath = $basePath . $request->old_name;
+    $newPath = $basePath . $request->new_name;
+
+    if (!File::exists($oldPath)) {
+        return response()->json(['message' => 'Old folder does not exist.'], 404);
     }
 
-    File::makeDirectory($subfolderPath, 0755, true); // ينشئ المجلد وأي مجلدات ناقصة في المسار
+    if (File::exists($newPath)) {
+        return response()->json(['message' => 'New folder name already exists.'], 409);
+    }
+
+    File::move($oldPath, $newPath);
 
     return response()->json([
-        'message' => 'Folder created successfully.',
-        'path' => "client_files/{$client->id}/" . $request->folder_name,
-    ], 201);
+        'message' => 'Folder renamed successfully.',
+        'old_name' => $request->old_name,
+        'new_name' => $request->new_name,
+    ], 200);
 }
+public function deleteClientFolder(Request $request, $clientId)
+{
+    $request->validate([
+        'folder_name' => 'required|string',
+    ]);
+
+    $client = Client::findOrFail($clientId);
+
+    $folderPath = storage_path("app/public/client_files/{$client->id}/" . $request->folder_name);
+
+    if (!File::exists($folderPath)) {
+        return response()->json(['message' => 'Folder does not exist.'], 404);
+    }
+
+    File::deleteDirectory($folderPath);
+
+    return response()->json(['message' => 'Folder deleted successfully.'], 200);
+}
+
 
 public function uploadFolder(Request $request, $clientId)
 {

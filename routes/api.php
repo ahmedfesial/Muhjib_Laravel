@@ -100,6 +100,8 @@ Route::post('/{id}/reject', [ClientsController::class, 'reject']);
 
 // Company Folder
 Route::get('/{client}/folders', [ClientsController::class, 'getClientFolders']);
+Route::put('/{client}/rename-folder', [ClientsController::class, 'renameClientFolder']);
+Route::delete('/{client}/delete-folder', [ClientsController::class, 'deleteClientFolder']);
 Route::post('/{client}/create-folder', [ClientsController::class, 'createClientSubfolder']);
 Route::post('/{client}/upload-folder', [ClientsController::class, 'uploadFolder']);
 Route::post('/{client}/upload-files', [ClientsController::class, 'uploadFiles']);
@@ -167,7 +169,7 @@ Route::group(['prefix' => 'main-categories'], function () {
     Route::get('/', [MainCategoriesController::class, 'index']);
     Route::post('/create', [MainCategoriesController::class, 'store']);
     Route::get('show/{mainCategory}', [MainCategoriesController::class, 'show']);
-    Route::put('update/{mainCategory}', [MainCategoriesController::class, 'update']);
+    Route::post('update/{mainCategory}', [MainCategoriesController::class, 'update']);
     Route::delete('delete/{mainCategory}', [MainCategoriesController::class, 'destroy']);
 });
 // Sub Categories Routes

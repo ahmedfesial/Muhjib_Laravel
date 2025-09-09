@@ -11,16 +11,18 @@ class UpdateMainCategoriesRequest extends FormRequest
         return true;
     }
 
-    public function rules(): array
-    {
-        return [
-            'brand_id' => 'sometimes|exists:brands,id',
-            'name_en' => 'sometimes|string|max:255',
-            'name_ar' => 'sometimes|string|max:255',
-            'image_url' => 'nullable|image|max:2048',
-            'color_code' => 'nullable|string|max:7',
-        ];
-    }
+public function rules(): array
+{
+    return [
+        'brand_id' => 'sometimes|exists:brands,id',
+        'name_en' => 'sometimes|string|max:255',
+        'name_ar' => 'sometimes|string|max:255',
+        'image_url' => 'nullable|image|max:2048', // صورة فقط، اسمها image
+        'color_code' => 'nullable|string|max:7',
+    ];
+}
+
+
 }
 
 
