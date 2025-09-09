@@ -18,7 +18,7 @@ class Product extends Model
         'name_en',
         'name_ar',
         'features',
-        'main_color',
+        'main_colors',
         'brand_id',
         'sub_category_id',
         'main_image',
@@ -38,6 +38,7 @@ class Product extends Model
     'legends',
     ];
     protected $casts = [
+    'main_colors' => 'array', // مهم عشان Laravel يحولها Array تلقائيًا
     'certificates' => 'array',
     'legends' => 'array',
     'created_at' => 'datetime',

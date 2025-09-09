@@ -213,7 +213,7 @@ public function reject($id)
 public function createClientSubfolder(Request $request, $clientId)
 {
     $request->validate([
-        'folder_name' => 'required|string|max:255',
+        'folder_name' => 'nullable|string|max:255',
     ]);
 
     $client = Client::findOrFail($clientId);
@@ -361,7 +361,35 @@ public function viewClientFolder($clientId)
         ]
     ]);
 }
+public function getClientFolders($clientId)
+{
+    // تأكد أن العميل موجود
+    $client = Client::findOrFail($clientId);
 
+    // مسار مجلد العميل
+    $basePath = storage_path("app/public/client_files/{$client->id}");
+
+    // تأكد أن المجلد موجود فعلاً
+    if (!File::exists($basePath)) {
+        return response()->json([
+            'message' => 'No folders found.',
+            'data' => []
+        ], 200);
+    }
+
+    // استرجاع جميع المجلدات الفرعية داخل مجلد العميل
+    $folders = File::directories($basePath);
+
+    // نحول المسارات الكاملة إلى أسماء الفولدرات فقط
+    $folderNames = array_map(function ($path) {
+        return basename($path);
+    }, $folders);
+
+    return response()->json([
+        'message' => 'Client folders retrieved successfully.',
+        'data' => $folderNames
+    ], 200);
+}
 
 // QR Code
 public function generateQr($clientId)

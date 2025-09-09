@@ -99,6 +99,7 @@ Route::post('/{id}/approve', [ClientsController::class, 'approve']);
 Route::post('/{id}/reject', [ClientsController::class, 'reject']);
 
 // Company Folder
+Route::get('/{client}/folders', [ClientsController::class, 'getClientFolders']);
 Route::post('/{client}/create-folder', [ClientsController::class, 'createClientSubfolder']);
 Route::post('/{client}/upload-folder', [ClientsController::class, 'uploadFolder']);
 Route::post('/{client}/upload-files', [ClientsController::class, 'uploadFiles']);

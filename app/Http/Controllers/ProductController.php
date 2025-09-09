@@ -137,7 +137,8 @@ class ProductController extends Controller
         'name_en' => 'nullable|string|max:255',
         'name_ar' => 'nullable|string|max:255',
         'features' => 'nullable|string',
-        'main_color' => 'nullable|string|max:100',
+        'main_colors' => 'nullable|array',
+        'main_colors.*' => 'nullable', // سواء نص أو صورة هنتعامل معاه يدويًا
         'brand_id' => 'nullable|exists:brands,id',
         'sub_category_id' => 'nullable|exists:sub_categories,id',
         'main_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -192,7 +193,31 @@ if ($request->hasFile('legends')) {
 // ثم أضفهم إلى البيانات قبل الإنشاء
 $validated['certificates'] = $certificates;
 $validated['legends'] = $legends;
+$mainColors = [];
 
+if ($request->has('main_colors')) {
+    foreach ($request->file('main_colors', []) ?? [] as $index => $colorFile) {
+        // لو صورة
+        if ($colorFile instanceof \Illuminate\Http\UploadedFile) {
+            $mainColors[] = $colorFile->store('products/colors', 'public');
+        }
+    }
+
+    // النصوص بتيجي مش من file()، فهنجيبها من input()
+    foreach ($request->input('main_colors', []) as $index => $colorText) {
+        if (!empty($colorText) && !($colorText instanceof \Illuminate\Http\UploadedFile)) {
+            $mainColors[] = $colorText;
+        }
+    }
+}
+
+$validated['main_colors'] = $mainColors;
+
+
+
+$product = Product::create($validated);
+
+// dd($request->main_colors);
     $product = Product::create($validated);
         $data = new ProductResource($product);
         return response()->json([
@@ -216,6 +241,10 @@ $validated['legends'] = $legends;
             'data' => $data
         ],200);
     }
+private function isImagePath($value)
+{
+    return is_string($value) && Str::endsWith($value, ['.jpg', '.jpeg', '.png', '.webp']);
+}
 
     public function update(UpdateProductRequest $request, Product $product)
     {
@@ -232,6 +261,28 @@ $validated['legends'] = $legends;
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
+
+    $colors = [];
+
+if ($request->has('main_colors')) {
+    // احذف الصور القديمة لو عايز (اختياري)
+    foreach ($product->main_colors ?? [] as $oldColor) {
+        if ($this->isImagePath($oldColor)) {
+            $this->deleteFile($oldColor);
+        }
+    }
+
+    foreach ($request->main_colors as $color) {
+        if ($color instanceof \Illuminate\Http\UploadedFile) {
+            $colors[] = $color->store('products/colors', 'public');
+        } else {
+            $colors[] = $color;
+        }
+    }
+
+    $data['main_colors'] = $colors;
+}
+
 
     foreach (['pdf_hs', 'pdf_msds', 'pdf_technical'] as $pdfField) {
         if ($request->hasFile($pdfField)) {
