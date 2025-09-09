@@ -24,10 +24,8 @@ public function index(Request $request)
     $user = Auth::user();
 
     if ($user->role === 'super_admin') {
-        // فقط العملاء اللي عندهم Quote Approved
-        $clients = Client::whereHas('quoteRequest', function ($query) {
-            $query->where('status', 'approved');
-        })->paginate(10);
+        // رجع كل الكلاينت بدون شروط
+        $clients = Client::paginate(10);
     } else {
         // العملاء الموافق عليهم ولهم Quote Approved فقط
         $clients = Client::where('status', 'approved')
@@ -37,6 +35,7 @@ public function index(Request $request)
     }
 
     $data = ClientResource::collection($clients);
+
     return response()->json([
         'message' => 'Clients Retrieved Successfully',
         'data' => $data,
