@@ -31,7 +31,7 @@ class ProductResource extends JsonResource
             'brand_id' => $this->brand_id,
             'sub_category_id' => $this->sub_category_id,
             'main_image' => $this->main_image
-    ? (Str::startsWith($this->main_image, ['http://', 'https://'])
+        ? (Str::startsWith($this->main_image, ['http://', 'https://'])
         ? $this->main_image
         : asset('storage/' . $this->main_image))
     : null,
@@ -44,17 +44,15 @@ class ProductResource extends JsonResource
             'dimensions' => $this->dimensions,
             'capacity' => $this->capacity,
             'specification' => $this->specification,
-            'price' => ProductPriceResource::collection($this->whenLoaded('price')),
+            // 'prices' => new ProductPriceResource($this->whenLoaded('price')),
             'is_visible' => $this->is_visible,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'quantity' => $this->quantity,
-            'certificates' => collect($this->certificates)->map(function ($path) {
-    return asset('storage/' . $path);
-}),
-'legends' => collect($this->legends)->map(function ($path) {
-    return asset('storage/' . $path);
-}),
+'certificates' => CertificateResource::collection($this->certificates ?? []),
+'legends' => LegendResource::collection($this->legends ?? []),
+
+
         ];
     }
     private function isImagePath($value)

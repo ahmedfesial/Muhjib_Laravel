@@ -17,7 +17,7 @@ class ProductController extends Controller
     use AuthorizesRequests;
     public function index(Request $request)
 {
-    $query = Product::query();
+    $query = Product::with(['certificates', 'legends']);  // <-- هنا أضفت with
 
     // 🔍 بحث عام (search)
     if ($request->has('search')) {
@@ -154,11 +154,11 @@ class ProductController extends Controller
         'price' => 'nullable|numeric|min:0',
         'is_visible' => 'boolean',
         'quantity' => 'required|integer|min:0',
-        'certificates' => 'nullable|array',
-        'certificates.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+        'certificate_ids' => 'nullable|array',
+        'certificate_ids.*' => 'exists:certificates,id',
+        'legend_ids' => 'nullable|array',
+        'legend_ids.*' => 'exists:legends,id',
 
-        'legends' => 'nullable|array',
-        'legends.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
     ]);
 
     if ($request->hasFile('main_image')) {
@@ -177,22 +177,12 @@ class ProductController extends Controller
         $validated['pdf_technical'] = $request->file('pdf_technical')->store('products/pdfs', 'public');
     }
     $certificates = [];
-if ($request->hasFile('certificates')) {
-    foreach ($request->file('certificates') as $file) {
-        $certificates[] = $file->store('products/certificates', 'public');
-    }
-}
+
 
 $legends = [];
-if ($request->hasFile('legends')) {
-    foreach ($request->file('legends') as $file) {
-        $legends[] = $file->store('products/legends', 'public');
-    }
-}
+
 
 // ثم أضفهم إلى البيانات قبل الإنشاء
-$validated['certificates'] = $certificates;
-$validated['legends'] = $legends;
 $mainColors = [];
 
 if ($request->has('main_colors')) {
@@ -213,23 +203,32 @@ if ($request->has('main_colors')) {
 
 $validated['main_colors'] = $mainColors;
 
-
-
 $product = Product::create($validated);
+// ربط الشهادات
+if ($request->has('certificate_ids')) {
+    $product->certificates()->sync($request->certificate_ids);
+}
+
+// ربط الليجندات
+if ($request->has('legend_ids')) {
+    $product->legends()->sync($request->legend_ids);
+}
 
 // dd($request->main_colors);
-    $product = Product::create($validated);
-        $data = new ProductResource($product);
+    // $product = Product::create($validated);
+    $product->load(['certificates', 'legends']);
+    // dd($product->toArray());
+        // $data = ;
         return response()->json([
             'message' =>'Product Created Successfully',
-            'data' => $data
+            'data' => new ProductResource($product),
         ],201);
     }
 
     public function show($id)
     {
         // $this->authorize('view', $product);
-        $product = Product::find($id);
+        $product = Product::with(['certificates', 'legends'])->find($id);
         if(!$product){
             return response()->json([
                 'message' => 'Product Not found'
@@ -290,29 +289,19 @@ if ($request->has('main_colors')) {
             $data[$pdfField] = $this->uploadFile($request, $pdfField, 'products/pdfs');
         }
     }
-    if ($request->hasFile('certificates')) {
-    // حذف الصور القديمة
-    foreach ($product->certificates ?? [] as $old) {
-        $this->deleteFile($old);
-    }
+
     $certificates = [];
-    foreach ($request->file('certificates') as $file) {
-        $certificates[] = $file->store('products/certificates', 'public');
-    }
-    $data['certificates'] = $certificates;
+    $legends = [];
+        $product->update($data);
+        // ربط الشهادات
+if ($request->has('certificate_ids')) {
+    $product->certificates()->sync($request->certificate_ids);
 }
 
-if ($request->hasFile('legends')) {
-    foreach ($product->legends ?? [] as $old) {
-        $this->deleteFile($old);
-    }
-    $legends = [];
-    foreach ($request->file('legends') as $file) {
-        $legends[] = $file->store('products/legends', 'public');
-    }
-    $data['legends'] = $legends;
+// ربط الليجندات
+if ($request->has('legend_ids')) {
+    $product->legends()->sync($request->legend_ids);
 }
-        $product->update($data);
         $updatedData=new ProductResource($product);
         return response()->json([
             'message' => 'Product Updated Successfully',
@@ -335,13 +324,9 @@ if ($request->hasFile('legends')) {
         $this->deleteFile($product->pdf_hs);
         $this->deleteFile($product->pdf_msds);
         $this->deleteFile($product->pdf_technical);
-        foreach ($product->certificates ?? [] as $file) {
-    $this->deleteFile($file);
-}
+        $product->certificates()->detach();
+        $product->legends()->detach();
 
-foreach ($product->legends ?? [] as $file) {
-    $this->deleteFile($file);
-}
         $product->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }

@@ -35,12 +35,11 @@ class Product extends Model
         'is_visible',
         'quantity',
         'certificates',
-    'legends',
+        'legends',
+
     ];
     protected $casts = [
     'main_colors' => 'array', // مهم عشان Laravel يحولها Array تلقائيًا
-    'certificates' => 'array',
-    'legends' => 'array',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
 ];
@@ -54,9 +53,11 @@ class Product extends Model
         return $this->belongsTo(SubCategories::class);
     }
 
-    public function prices() {
-        return $this->hasMany(ProductPrice::class);
-    }
+public function price()
+{
+    return $this->hasOne(ProductPrice::class); // أو hasMany لو عندك أسعار متعددة
+}
+
     public function basketProducts() { return $this->hasMany(BasketProduct::class); }
     public function getMainImageAttribute($value)
 {
@@ -68,4 +69,13 @@ public function creator()
 {
     return $this->belongsTo(User::class, 'created_by');
 }
+
+public function legends() {
+    return $this->belongsToMany(Legend::class, 'legend_product', 'product_id', 'legend_id');
+}
+
+public function certificates() {
+    return $this->belongsToMany(Certificate::class, 'certificate_product', 'product_id', 'certificate_id');
+}
+
 }

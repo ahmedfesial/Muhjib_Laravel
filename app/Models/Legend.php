@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Certificate extends Model
+class Legend extends Model
 {
     protected $fillable = ['name', 'image'];
 
@@ -18,4 +18,3 @@ class Certificate extends Model
         return $value ? asset('storage/' . $value) : null;
     }
 }
-

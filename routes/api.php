@@ -28,11 +28,11 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\CertificateController;
-use App\Http\Controllers\LegandController;
 use App\Http\Controllers\TemplateController;
 use App\Http\Controllers\GuestCartController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\LegendController;
+use App\Http\Controllers\CertificateController;
         Route::post('/users/create', [UserController::class, 'create']);
 
 Route::get('/activities', [ActivityController::class, 'index']);
@@ -82,6 +82,18 @@ Route::group(['prefix'=>'products'],function(){
     Route::get('/filter', [ProductController::class, 'filter']);
     // Update Quantity
     Route::patch('/{product}/update-quantity', [ProductController::class, 'updateQuantity']);
+});
+// Certificate Routes
+Route::group(['prefix'=>'certificates'],function(){
+    Route::get('/', [CertificateController::class, 'index']);
+    Route::post('/create', [CertificateController::class, 'store']);
+    Route::delete('delete/{certificate}', [CertificateController::class, 'destroy']);
+});
+// Legend Routes
+Route::group(['prefix'=>'legends'],function(){
+    Route::get('/', [LegendController::class, 'index']);
+    Route::post('/create', [LegendController::class, 'store']);
+    Route::delete('delete/{legend}', [LegendController::class, 'destroy']);
 });
 // Admin Controller
 Route::get('/admin/dashboard', [AdminController::class, 'dashboard']);
