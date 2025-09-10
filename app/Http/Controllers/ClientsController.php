@@ -14,6 +14,7 @@ use App\Models\ClientFile;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Carbon;
 
 
 class ClientsController extends Controller
@@ -273,19 +274,26 @@ public function renameClientFolder(Request $request, $clientId)
     ], 200);
 }
 
-public function viewClientSubfolder(Request $request, $clientId, $folderName)
+public function viewClientSubfolder(Request $request, $clientId, $folderName = null)
 {
     $client = Client::findOrFail($clientId);
 
-    $folderPath = "client_files/{$client->id}/{$folderName}";
+    // لو ما فيش folderName، استخدم المجلد الرئيسي للعميل
+    $folderPath = $folderName
+        ? "client_files/{$client->id}/{$folderName}"
+        : "client_files/{$client->id}";
 
-    // تأكد أن المجلد موجود
     $fullPath = storage_path("app/public/" . $folderPath);
+
     if (!File::exists($fullPath)) {
-        return response()->json(['message' => 'Folder not found.'], 404);
+    return response()->json([
+        'message' => 'Folder is empty or does not exist.',
+        'folder_name' => $folderName ?? 'Root Folder',
+        'data' => []
+    ], 200);
     }
 
-    // استخرج الملفات فقط داخل هذا الفولدر
+
     $files = File::files($fullPath);
 
     $fileData = [];
@@ -300,11 +308,10 @@ public function viewClientSubfolder(Request $request, $clientId, $folderName)
 
     return response()->json([
         'message' => 'Folder contents retrieved successfully.',
-        'folder_name' => $folderName,
+        'folder_name' => $folderName ?? 'Root Folder',
         'data' => $fileData,
     ]);
 }
-
 
 public function deleteClientFolder(Request $request, $clientId)
 {
@@ -460,7 +467,7 @@ public function getClientFolders($clientId)
     // مسار مجلد العميل
     $basePath = storage_path("app/public/client_files/{$client->id}");
 
-    // تأكد أن المجلد موجود فعلاً
+    // تأكد أن المجلد موجود
     if (!File::exists($basePath)) {
         return response()->json([
             'message' => 'No folders found.',
@@ -468,20 +475,37 @@ public function getClientFolders($clientId)
         ], 200);
     }
 
-    // استرجاع جميع المجلدات الفرعية داخل مجلد العميل
+    // الحصول على كل المجلدات داخل مجلد العميل
     $folders = File::directories($basePath);
 
-    // نحول المسارات الكاملة إلى أسماء الفولدرات فقط
-    $folderNames = array_map(function ($path) {
-        return basename($path);
-    }, $folders);
+    $folderDetails = [];
+
+    foreach ($folders as $folderPath) {
+        $folderName = basename($folderPath);
+
+        // الملفات داخل الفولدر
+        $files = File::files($folderPath);
+
+        // حجم الفولدر
+        $size = 0;
+        foreach ($files as $file) {
+            $size += $file->getSize();
+        }
+
+        $folderDetails[] = [
+            'name' => $folderName,
+            'relative_path' => "storage/client_files/{$client->id}/{$folderName}",
+            'file_count' => count($files),
+            'size_kb' => round($size / 1024, 2),
+            'last_modified' => Carbon::createFromTimestamp(File::lastModified($folderPath))->toDateTimeString(),
+        ];
+    }
 
     return response()->json([
         'message' => 'Client folders retrieved successfully.',
-        'data' => $folderNames
+        'data' => $folderDetails
     ], 200);
 }
-
 // QR Code
 public function generateQr($clientId)
 {

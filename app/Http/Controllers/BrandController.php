@@ -27,11 +27,15 @@ class BrandController extends Controller
     ], 200);
     }
 
-    private function filter(Request $request)
+   private function filter(Request $request)
 {
     $query = Brand::query();
 
-    $query->where('is_hidden', false); // جِيب اللي مش متخفيين بس
+    // ✅ رجّع البراندات المفعلة فقط
+    $query->where('status', true);
+
+    // لو حابب تحافظ على فلترة is_hidden كمان، سيب السطر ده:
+    // $query->where('is_hidden', false);
 
     if ($request->filled('name_en')) {
         $query->where('name_en', 'like', '%' . $request->name_en . '%');
@@ -48,6 +52,7 @@ class BrandController extends Controller
     return $query;
 }
 
+
 public function toggleStatus($id)
 {
     $brand = Brand::find($id);
@@ -55,15 +60,16 @@ public function toggleStatus($id)
     if (!$brand) {
         return response()->json(['message' => 'Brand not found'], 404);
     }
-    // Toggle using ternary operator
-    $brand->is_hidden = $brand->is_hidden ? false : true;
+
+    $brand->status = !$brand->status; // تبديل الحالة
     $brand->save();
 
     return response()->json([
-        'message' => $brand->is_hidden ? 'hidden' : 'unhidden',
-        'status'  => $brand->is_hidden
+        'message' => $brand->status ? 'Brand activated' : 'Brand deactivated',
+        'status'  => $brand->status
     ], 200);
 }
+
 
 
 
@@ -81,6 +87,7 @@ public function store(Request $request)
         'background_image_url' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:4096',
         'color_code' => 'nullable|string|max:7',
         'catalog_pdf_url' => 'nullable|mimes:pdf|max:10000',
+        'status' => 'nullable|boolean',
     ]);
 
     if ($request->hasFile('logo')) {
@@ -128,6 +135,7 @@ public function store(Request $request)
         'background_image_url' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:4096',
         'color_code' => 'nullable|string|max:7',
         'catalog_pdf_url' => 'nullable|mimes:pdf|max:10000',
+        'status' => 'nullable|boolean',
     ]);
 
     if ($request->hasFile('logo')) {

@@ -24,6 +24,7 @@ class BrandResource extends JsonResource
         'catalog_pdf_url' => $this->catalog_pdf_url ? asset(Storage::url($this->catalog_pdf_url)) : null,
         'main_categories' => $this->whenLoaded('mainCategories'),
         'created_at' => $this->created_at,
+        'status' => $this->status,
     ];
 }
 
