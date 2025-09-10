@@ -34,12 +34,10 @@ class Product extends Model
         'price',
         'is_visible',
         'quantity',
-        'certificates',
-        'legends',
 
     ];
     protected $casts = [
-    'main_colors' => 'array', // مهم عشان Laravel يحولها Array تلقائيًا
+    'main_colors' => 'array',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
 ];
@@ -55,7 +53,7 @@ class Product extends Model
 
 public function price()
 {
-    return $this->hasOne(ProductPrice::class); // أو hasMany لو عندك أسعار متعددة
+    return $this->hasOne(ProductPrice::class);
 }
 
     public function basketProducts() { return $this->hasMany(BasketProduct::class); }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Certificate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -49,8 +50,10 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'quantity' => $this->quantity,
-'certificates' => CertificateResource::collection($this->certificates ?? []),
-'legends' => LegendResource::collection($this->legends ?? []),
+'certificates' => CertificateResource::collection($this->whenLoaded('certificates')),
+'legends' => CertificateResource::collection($this->whenLoaded('legends')),
+
+
 
 
         ];

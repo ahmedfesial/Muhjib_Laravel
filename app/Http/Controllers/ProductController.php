@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductController extends Controller
 {
@@ -18,7 +19,7 @@ class ProductController extends Controller
     public function index(Request $request)
 {
     $query = Product::with(['certificates', 'legends']);  // <-- هنا أضفت with
-
+    
     // 🔍 بحث عام (search)
     if ($request->has('search')) {
         $searchTerm = $request->input('search');
@@ -47,11 +48,12 @@ class ProductController extends Controller
     }
 
     $products = $query->paginate(15);
-    $data = ProductResource::collection($products);
-
+    // dd($products->toArray());
+    // $data = ProductResource::collection($products);
+    
     return response()->json([
         'message' => 'Products Retrieved Successfully',
-        'data' => $data
+        'data' => $products
     ], 200);
 }
 
@@ -234,10 +236,10 @@ if ($request->has('legend_ids')) {
                 'message' => 'Product Not found'
             ],404);
         }
-        $data =new ProductResource($product);
+        // dd($product->toArray());
         return response()->json([
             'message' => 'Product Retrieved Successfully',
-            'data' => $data
+            'data' => $product,
         ],200);
     }
 private function isImagePath($value)
@@ -309,6 +311,16 @@ if ($request->has('legend_ids')) {
         ],200);
     }
 
+
+public function downloadTechnicalSheet(Product $product)
+{
+    $product->load(['certificates', 'legends', 'brand', 'subCategory']);
+    // dd($product->toArray());
+    // مرر بيانات المنتج إلى View Blade
+    $pdf = PDF::loadView('pdf.technical_sheet', ['product' => $product]);
+
+    return $pdf->download("Technical_Data_Sheet_{$product->id}.pdf");
+}
 
     public function destroy(Product $product)
     {

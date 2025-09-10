@@ -272,6 +272,40 @@ public function renameClientFolder(Request $request, $clientId)
         'new_name' => $request->new_name,
     ], 200);
 }
+
+public function viewClientSubfolder(Request $request, $clientId, $folderName)
+{
+    $client = Client::findOrFail($clientId);
+
+    $folderPath = "client_files/{$client->id}/{$folderName}";
+
+    // تأكد أن المجلد موجود
+    $fullPath = storage_path("app/public/" . $folderPath);
+    if (!File::exists($fullPath)) {
+        return response()->json(['message' => 'Folder not found.'], 404);
+    }
+
+    // استخرج الملفات فقط داخل هذا الفولدر
+    $files = File::files($fullPath);
+
+    $fileData = [];
+
+    foreach ($files as $file) {
+        $fileData[] = [
+            'file_name' => $file->getFilename(),
+            'file_type' => $file->getExtension(),
+            'file_url' => asset('storage/' . $folderPath . '/' . $file->getFilename()),
+        ];
+    }
+
+    return response()->json([
+        'message' => 'Folder contents retrieved successfully.',
+        'folder_name' => $folderName,
+        'data' => $fileData,
+    ]);
+}
+
+
 public function deleteClientFolder(Request $request, $clientId)
 {
     $request->validate([

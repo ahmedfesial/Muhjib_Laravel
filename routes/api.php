@@ -82,6 +82,8 @@ Route::group(['prefix'=>'products'],function(){
     Route::get('/filter', [ProductController::class, 'filter']);
     // Update Quantity
     Route::patch('/{product}/update-quantity', [ProductController::class, 'updateQuantity']);
+// Daata Sheet
+    Route::get('/{product}/technical-datasheet', [ProductController::class, 'downloadTechnicalSheet']);
 });
 // Certificate Routes
 Route::group(['prefix'=>'certificates'],function(){
@@ -119,6 +121,7 @@ Route::post('/{client}/upload-folder', [ClientsController::class, 'uploadFolder'
 Route::post('/{client}/upload-files', [ClientsController::class, 'uploadFiles']);
 Route::get('/{client}/files', [ClientsController::class, 'getClientFiles']);
 Route::get('/client-folder/{id}', [ClientsController::class, 'viewClientFolder']);
+Route::get('/{clientId}/folders/{folderName}', [ClientsController::class, 'viewClientSubfolder']);
 
 // QR Code
 Route::get('/{id}/qr', [ClientsController::class, 'generateQr']);
