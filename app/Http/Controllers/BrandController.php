@@ -32,7 +32,7 @@ class BrandController extends Controller
     $query = Brand::query();
 
     // ✅ رجّع البراندات المفعلة فقط
-    $query->where('status', true);
+    // $query->where('status', true);
 
     // لو حابب تحافظ على فلترة is_hidden كمان، سيب السطر ده:
     // $query->where('is_hidden', false);
