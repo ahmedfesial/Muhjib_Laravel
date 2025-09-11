@@ -13,6 +13,7 @@ class StoreProductRequest extends FormRequest
         return [
             'name_en' => 'nullable|string|max:255',
             'name_ar' => 'nullable|string|max:255',
+            'description_ar' => 'nullable|string',
             'features' => 'nullable|string',
             'main_color' => 'nullable|string|max:100',
             'brand_id' => 'nullable|exists:brands,id',
@@ -35,6 +36,8 @@ class StoreProductRequest extends FormRequest
 
         'legends' => 'nullable|array',
         'legends.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
+                'images' => 'nullable|array',
+        'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
     }
 }

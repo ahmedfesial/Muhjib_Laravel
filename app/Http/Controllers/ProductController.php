@@ -19,7 +19,7 @@ class ProductController extends Controller
     public function index(Request $request)
 {
     $query = Product::with(['certificates', 'legends']);  // <-- هنا أضفت with
-    
+
     // 🔍 بحث عام (search)
     if ($request->has('search')) {
         $searchTerm = $request->input('search');
@@ -50,7 +50,7 @@ class ProductController extends Controller
     $products = $query->paginate(15);
     // dd($products->toArray());
     // $data = ProductResource::collection($products);
-    
+
     return response()->json([
         'message' => 'Products Retrieved Successfully',
         'data' => $products
@@ -138,6 +138,7 @@ class ProductController extends Controller
         $validated = $request->validate([
         'name_en' => 'nullable|string|max:255',
         'name_ar' => 'nullable|string|max:255',
+        'description_ar' => 'nullable|string',
         'features' => 'nullable|string',
         'main_colors' => 'nullable|array',
         'main_colors.*' => 'nullable', // سواء نص أو صورة هنتعامل معاه يدويًا
@@ -160,7 +161,8 @@ class ProductController extends Controller
         'certificate_ids.*' => 'exists:certificates,id',
         'legend_ids' => 'nullable|array',
         'legend_ids.*' => 'exists:legends,id',
-
+        'images' => 'nullable|array',
+        'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
     ]);
 
     if ($request->hasFile('main_image')) {
@@ -178,12 +180,18 @@ class ProductController extends Controller
     if ($request->hasFile('pdf_technical')) {
         $validated['pdf_technical'] = $request->file('pdf_technical')->store('products/pdfs', 'public');
     }
+    $images = [];
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $images[] = $image->store('products/images', 'public');
+        }
+    }
+    $validated['images'] = $images;
+
     $certificates = [];
 
 
 $legends = [];
-
-
 // ثم أضفهم إلى البيانات قبل الإنشاء
 $mainColors = [];
 
@@ -262,6 +270,20 @@ private function isImagePath($value)
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
+    if ($request->hasFile('images')) {
+        // حذف الصور القديمة
+        foreach ($product->images ?? [] as $oldImage) {
+            $this->deleteFile($oldImage);
+        }
+
+        $newImages = [];
+        foreach ($request->file('images') as $image) {
+            $newImages[] = $image->store('products/images', 'public');
+        }
+
+        $data['images'] = $newImages;
+    }
+
 
     $colors = [];
 

@@ -16,6 +16,7 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'name_en' => $this->name_en,
             'name_ar' => $this->name_ar,
+            'description_ar' => $this->description_ar,
             'features' => $this->features,
 'main_colors' => collect($this->main_colors)->map(function ($color) {
     if (Str::startsWith($color, ['http://', 'https://'])) {
@@ -50,11 +51,12 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'quantity' => $this->quantity,
-'certificates' => CertificateResource::collection($this->whenLoaded('certificates')),
-'legends' => CertificateResource::collection($this->whenLoaded('legends')),
+            'certificates' => CertificateResource::collection($this->whenLoaded('certificates')),
+            'legends' => CertificateResource::collection($this->whenLoaded('legends')),
 
-
-
+            'images' => collect($this->images)->map(function ($img) {
+                return asset('storage/' . $img);
+            }),
 
         ];
     }

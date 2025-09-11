@@ -17,6 +17,7 @@ class Product extends Model
     protected $fillable = [
         'name_en',
         'name_ar',
+        'description_ar',
         'features',
         'main_colors',
         'brand_id',
@@ -34,10 +35,11 @@ class Product extends Model
         'price',
         'is_visible',
         'quantity',
-
+        'images',
     ];
     protected $casts = [
     'main_colors' => 'array',
+        'images' => 'array',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
 ];

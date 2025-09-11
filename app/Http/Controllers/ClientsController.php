@@ -246,8 +246,8 @@ public function createClientSubfolder(Request $request, $clientId)
 public function renameClientFolder(Request $request, $clientId)
 {
     $request->validate([
-        'old_name' => 'required|string',
-        'new_name' => 'required|string',
+        'old_name' => 'nullable|string',
+        'new_name' => 'nullable|string',
     ]);
 
     $client = Client::findOrFail($clientId);
@@ -316,7 +316,7 @@ public function viewClientSubfolder(Request $request, $clientId, $folderName = n
 public function deleteClientFolder(Request $request, $clientId)
 {
     $request->validate([
-        'folder_name' => 'required|string',
+        'folder_name' => 'nullable|string',
     ]);
 
     $client = Client::findOrFail($clientId);
@@ -393,7 +393,7 @@ public function uploadFiles(Request $request, $clientId)
 {
     $request->validate([
         'files' => 'required|array',
-        'files.*' => 'file|max:10240',
+        'files.*' => 'file|max:102400',
         'folder_name' => 'nullable|string',
     ]);
 
@@ -417,11 +417,18 @@ public function uploadFiles(Request $request, $clientId)
 
         $uploadedFiles[] = $clientFile;
     }
-
+    // dd($uploadedFiles);
     return response()->json([
-        'message' => 'Files uploaded successfully.',
-        'data' => $uploadedFiles
-    ], 201);
+    'message' => 'Files uploaded successfully.',
+    'data' => array_map(function($file) {
+        return [
+            'id' => $file->id,
+            'file_name' => $file->file_name,
+            'file_type' => $file->file_type,
+            'file_path' => $file->file_path,
+        ];
+    }, $uploadedFiles)
+], 201);
 }
 
 
