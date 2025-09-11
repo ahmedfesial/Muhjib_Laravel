@@ -53,7 +53,8 @@ class ProductController extends Controller
 
     return response()->json([
         'message' => 'Products Retrieved Successfully',
-        'data' => $products
+        'data' => $products,
+        'total' => $products->total(),
     ], 200);
 }
 
