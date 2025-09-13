@@ -7,6 +7,9 @@ use App\Http\Requests\StoreProductPriceRequest;
 use App\Http\Requests\UpdateProductPriceRequest;
 use App\Http\Resources\ProductPriceResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Exports\ProductPriceExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ProductPriceImport;
 use Illuminate\Http\Request;
 
 class ProductPriceController extends Controller
@@ -21,6 +24,31 @@ class ProductPriceController extends Controller
             'data' => $data
         ],200);
     }
+ public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:xlsx,xls',
+    ]);
+
+    $import = new ProductPriceImport();
+    Excel::import($import, $request->file('file'));
+
+    if (!empty($import->errors)) {
+        return response()->json([
+            'message' => 'Some rows were skipped due to errors.',
+            'errors' => $import->errors
+        ], 422);
+    }
+
+    return response()->json([
+        'message' => 'Prices updated successfully from Excel file.'
+    ]);
+}
+
+    public function export()
+{
+    return Excel::download(new ProductPriceExport, 'product_prices.xlsx');
+}
 
     public function store(StoreProductPriceRequest $request)
     {
@@ -32,11 +60,11 @@ class ProductPriceController extends Controller
             'data' => $data
         ],201);
     }
-    
+
 
     public function update(UpdateProductPriceRequest $request, ProductPrice $productPrice)
     {
-        $this->authorize('update', $productPrice);
+        // $this->authorize('update', $productPrice);
         $productPrice = ProductPrice::find($productPrice);
         if(!$productPrice){
             return response()->json([

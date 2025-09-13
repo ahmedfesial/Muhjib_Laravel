@@ -42,6 +42,8 @@ class Product extends Model
         'images' => 'array',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
+     'counts' => 'array',
+    'errors' => 'array',
 ];
 
 
@@ -57,6 +59,11 @@ public function price()
 {
     return $this->hasOne(ProductPrice::class);
 }
+public function prices()
+{
+    return $this->hasMany(ProductPrice::class);
+}
+
 
     public function basketProducts() { return $this->hasMany(BasketProduct::class); }
     public function getMainImageAttribute($value)

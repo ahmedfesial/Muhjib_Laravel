@@ -47,6 +47,7 @@ class ProductResource extends JsonResource
             'capacity' => $this->capacity,
             'specification' => $this->specification,
             // 'prices' => new ProductPriceResource($this->whenLoaded('price')),
+            'prices' => $this->prices->pluck('value', 'price_type'), // 🟢 ده بيرجعها كـ key => value
             'is_visible' => $this->is_visible,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -33,6 +33,9 @@ use App\Http\Controllers\GuestCartController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\LegendController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\ProductImportController;
+use App\Exports\ProductsExport;
+use Maatwebsite\Excel\Facades\Excel;
         Route::post('/users/create', [UserController::class, 'create']);
 
 Route::get('/activities', [ActivityController::class, 'index']);
@@ -85,6 +88,11 @@ Route::group(['prefix'=>'products'],function(){
 // Daata Sheet
     Route::get('/{product}/technical-datasheet', [ProductController::class, 'downloadTechnicalSheet']);
 });
+ Route::post('/import/products', [ProductImportController::class, 'import']);
+    Route::get('/import/status/{id}', [ProductImportController::class, 'status'])->name('import.status');
+    Route::get('/products/export', [ProductImportController::class, 'export']);
+
+
 // Certificate Routes
 Route::group(['prefix'=>'certificates'],function(){
     Route::get('/', [CertificateController::class, 'index']);
@@ -142,6 +150,8 @@ Route::get('', [ProductPriceController::class, 'index']);
 Route::post('/create', [ProductPriceController::class, 'store']);
 Route::post('update/{productPrice}', [ProductPriceController::class, 'update']);
 Route::delete('delete/{productPrice}', [ProductPriceController::class, 'destroy']);
+Route::get('/export', [ProductPriceController::class, 'export']);
+Route::post('/import', [ProductPriceController::class, 'import']);
 });
 
 // Basket Product Routes
@@ -211,6 +221,7 @@ Route::group(['prefix'=>'price-upload-logs'],function(){
 });
 // Templates Routes
 Route::group(['prefix' => 'templates'], function () {
+Route::get('/', [TemplateController::class, 'index']);
  Route::post('/create', [TemplateController::class, 'store']);
 Route::post('/{template}/client', [TemplateController::class, 'addClient']);
 Route::post('/{template}/products', [TemplateController::class, 'addProductToTemplate']);

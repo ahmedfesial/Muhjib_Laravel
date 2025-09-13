@@ -18,8 +18,7 @@ class ProductController extends Controller
     use AuthorizesRequests;
     public function index(Request $request)
 {
-    $query = Product::with(['certificates', 'legends']);  // <-- هنا أضفت with
-
+    $query = Product::with(['certificates', 'legends', 'prices']);
     // 🔍 بحث عام (search)
     if ($request->has('search')) {
         $searchTerm = $request->input('search');
@@ -48,9 +47,8 @@ class ProductController extends Controller
     }
 
     $products = $query->paginate(15);
-    // dd($products->toArray());
     // $data = ProductResource::collection($products);
-
+    // dd($products->toArray());
     return response()->json([
         'message' => 'Products Retrieved Successfully',
         'data' => $products,
@@ -164,6 +162,9 @@ class ProductController extends Controller
         'legend_ids.*' => 'exists:legends,id',
         'images' => 'nullable|array',
         'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'prices' => 'nullable|array',
+        'prices.*.price_type' => 'required|string',
+        'prices.*.value' => 'required|numeric',
     ]);
 
     if ($request->hasFile('main_image')) {
@@ -213,8 +214,16 @@ if ($request->has('main_colors')) {
 }
 
 $validated['main_colors'] = $mainColors;
+  $pricesData = $validated['prices'];
 
 $product = Product::create($validated);
+
+foreach ($pricesData as $price) {
+    $product->prices()->create($price); // ✅ بيرتبط بعلاقة hasMany
+}
+
+
+    $product->load('prices');
 // ربط الشهادات
 if ($request->has('certificate_ids')) {
     $product->certificates()->sync($request->certificate_ids);
@@ -225,9 +234,9 @@ if ($request->has('legend_ids')) {
     $product->legends()->sync($request->legend_ids);
 }
 
-// dd($request->main_colors);
     // $product = Product::create($validated);
     $product->load(['certificates', 'legends']);
+// dd($product->prices->toArray());
     // dd($product->toArray());
         // $data = ;
         return response()->json([
@@ -239,7 +248,7 @@ if ($request->has('legend_ids')) {
     public function show($id)
     {
         // $this->authorize('view', $product);
-        $product = Product::with(['certificates', 'legends'])->find($id);
+        $product = Product::with(['certificates', 'legends', 'prices'])->find($id);
         if(!$product){
             return response()->json([
                 'message' => 'Product Not found'

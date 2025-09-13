@@ -14,6 +14,24 @@ use App\Models\User;
 
 class TemplateController extends Controller
 {
+
+    public function index()
+{
+    $templates = Template::with([
+        'client',
+        'templateProducts.product.subCategory',
+        'creator',
+        'startCoverImages',
+        'endCoverImages',
+    ])->latest()->get();
+
+    return response()->json([
+        'message' => 'Templates Retrieved Successfully',
+        'templates' => $templates
+    ]);
+}
+
+
    public function store(Request $request)
 {
     $data = $request->validate([

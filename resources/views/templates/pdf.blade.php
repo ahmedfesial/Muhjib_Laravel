@@ -97,9 +97,10 @@
     {{-- ✅ غلاف الـ SubCategory --}}
     @if($subCategory && $subCategory->cover_image)
         <div class="page centered-content">
-            @if($template->logo)
-                <img src="{{ public_path('storage/' . $template->logo) }}" class="logo-top-right">
+            @if($client && $client->logo)
+                <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
             @endif
+
             <img src="{{ public_path('storage/' . $subCategory->cover_image) }}" style="width:100%;">
         </div>
     @endif
@@ -156,12 +157,13 @@
     @endif
     <div class="content centered-content">
         <!-- <h1>{{ $template->name }}</h1> -->
-        @if($template->logo)
-            <img src="{{ public_path('storage/'.$template->logo) }}" class="logo-top-right">
+        @if($client && $client->logo)
+            <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
         @endif
 
+
         <h2>Client Information</h2>
-        <p> {{ $client->client_name ?? 'N/A' }}</p>
+        <p> {{ $client->name ?? 'N/A' }}</p>
         <p> {{ $client->email ?? 'N/A' }}</p>
         <p> {{ $client->phone ?? 'N/A' }}</p>
 

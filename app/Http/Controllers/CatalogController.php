@@ -87,48 +87,65 @@ public function generateCatalog(Request $request)
 {
     $request->validate([
         'template_id' => 'required|exists:templates,id',
-        'products' => 'required|array',
-        'products.*' => 'exists:products,id',
+        'basket_id' => 'required|exists:baskets,id',
     ]);
 
-    $template = Template::with('client', 'creator')->findOrFail($request->template_id);
+    $template = Template::with('creator')->findOrFail($request->template_id);
     $user = Auth::user();
 
-    // تحميل المنتجات مع الـ SubCategory
-    $products = Product::with('subCategory')->whereIn('id', $request->products)->get();
+    $basket = Basket::with('basketProducts.product.subCategory', 'client')->findOrFail($request->basket_id);
 
-    // إنشاء الـ Catalog في الداتابيز (مؤقتاً)
+    $client = $basket->client; // ← هنا هجيب العميل مباشرة من الباسكت
+
+    if (!$client) {
+        return response()->json([
+            'message' => 'No client associated with this basket.'
+        ], 400);
+    }
+
+    $templateProducts = $basket->basketProducts->map(function ($item) {
+        $product = $item->product;
+        return (object)[
+            'name' => $product->name_en,
+            'description' => $product->specification,
+            'price' => $item->price,
+            'image' => $product->main_image,
+            'quantity' => $item->quantity,
+            'total' => $item->quantity * $item->price,
+            'product' => $product,
+        ];
+    });
+
+    $groupedProducts = $templateProducts->groupBy(function ($item) {
+        return optional($item->product->subCategory)->id;
+    });
+
     $catalog = Catalog::create([
-        'title' => 'My Custom Catalog',
+        'name' => 'Generated Catalog from Basket #' . $basket->id,
         'template_id' => $template->id,
         'created_by' => $user->id,
-        'basket_id' => $request->basket_id ?? null,
+        'basket_id' => $basket->id,
     ]);
-
-    // نجهز groupedProducts
-    $groupedProducts = $products->groupBy(function ($product) {
-        return optional($product->subCategory)->id;
-    });
 
     $pdf = Pdf::loadView('templates.pdf', [
         'template' => $template,
         'user' => $user,
-        'client' => $template->client,
-        'groupedProducts' => $groupedProducts
+        'client' => $client, // ← دي أهم حاجة
+        'groupedProducts' => $groupedProducts,
     ])->setPaper('A4', 'portrait');
 
     $filename = 'catalog_' . time() . '.pdf';
     $filePath = 'catalogs/' . $filename;
     Storage::disk('public')->put($filePath, $pdf->output());
 
-    $catalog->pdf_path = $filePath;
-    $catalog->save();
+    $catalog->update(['pdf_path' => $filePath]);
 
     return response()->json([
         'message' => 'Catalog PDF Generated Successfully',
         'file_url' => Storage::url($filePath),
     ]);
 }
+
 
 public function convertToCatalog(Request $request, Basket $basket)
 {

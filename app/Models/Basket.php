@@ -20,9 +20,11 @@ class Basket extends Model
 {
     return $this->hasMany(BasketProduct::class, 'basket_id');
 }
-    public function client() {
-        return $this->belongsTo(Client::class);
-    }
+    public function client()
+{
+    return $this->belongsTo(Client::class);
+}
+
 
     public function creator() {
         return $this->belongsTo(User::class, 'created_by');
