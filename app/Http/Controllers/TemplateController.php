@@ -181,6 +181,32 @@ public function generatePDF(Template $template)
 }
 
 
+public function destroy(Template $template)
+{
+    // حذف الصور من التخزين
+    if ($template->logo) {
+        Storage::disk('public')->delete($template->logo);
+    }
+
+    // حذف صور الغلاف
+    foreach ($template->coverImages as $image) {
+        if ($image->path) {
+            Storage::disk('public')->delete($image->path);
+        }
+        $image->delete(); // حذف السجل من قاعدة البيانات
+    }
+
+    // حذف المنتجات المرتبطة
+    $template->templateProducts()->delete();
+
+    // حذف العميل المرتبط إن وجد
+    $template->client()->delete();
+
+    // حذف التمبليت نفسه
+    $template->delete();
+
+    return response()->json(['message' => 'Template deleted successfully']);
+}
 
 
 }

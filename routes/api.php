@@ -230,7 +230,7 @@ Route::post('/{template}/cover-images', [TemplateController::class, 'uploadCover
     // Route::get('/', [TempletesController::class, 'index']);
     // Route::post('/create', [TempletesController::class, 'store']);
     // Route::get('show/{id}', [TempletesController::class, 'show']);
-    // Route::delete('delete/{id}', [TempletesController::class, 'destroy']);
+    Route::delete('delete/{id}', [TemplateController::class, 'destroy']);
 });
 
 // Catalog Routes
