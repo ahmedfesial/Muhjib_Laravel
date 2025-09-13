@@ -193,20 +193,25 @@ public function destroy(Template $template)
         if ($image->path) {
             Storage::disk('public')->delete($image->path);
         }
-        $image->delete(); // حذف السجل من قاعدة البيانات
+        $image->forceDelete(); // حذف فعلي
     }
 
     // حذف المنتجات المرتبطة
-    $template->templateProducts()->delete();
+    foreach ($template->templateProducts as $product) {
+        $product->forceDelete();
+    }
 
     // حذف العميل المرتبط إن وجد
-    $template->client()->delete();
+    if ($template->client) {
+        $template->client->forceDelete();
+    }
 
     // حذف التمبليت نفسه
-    $template->delete();
-
+    $template->forceDelete();
+    
     return response()->json(['message' => 'Template deleted successfully']);
 }
+
 
 
 }

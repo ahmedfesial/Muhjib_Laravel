@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Template extends Model
 {
+    use SoftDeletes;
     protected $fillable = ['name', 'logo','created_by', 'cover_image_start', 'cover_image_end', 'description'];
 
     protected $casts = [
