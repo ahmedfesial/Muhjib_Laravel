@@ -7,8 +7,6 @@ use App\Http\Requests\StoreBasketsRequest;
 use App\Http\Requests\UpdateBasketsRequest;
 use App\Http\Resources\BasketResource;
 use Illuminate\Http\Request;
-use App\Http\Resources\ClientResource;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Events\BasketCreated;
@@ -17,7 +15,6 @@ class BasketController extends Controller
 {
     public function index(Request $request)
     {
-        // $this->authorize('viewAny', Basket::class);
 
         $baskets = Basket::with(['client', 'creator', 'basketProducts.product'])->paginate(10);
             $data = BasketResource::collection($baskets);
@@ -45,7 +42,6 @@ public function filter(Request $request)
 
     public function store(StoreBasketsRequest $request)
     {
-        // $this->authorize('create', Basket::class);
     $createdBy = $request->input('created_by') ?? (Auth::check() ? Auth::id() : null);
 
        $basketData = $request->only([
@@ -81,7 +77,6 @@ public function filter(Request $request)
 
     public function show($id)
     {
-        // $this->authorize('view', $id);
         $basket = Basket::with(['client', 'creator', 'basketProducts.product'])->find($id);
         if (!$basket) {
             return response()->json(['message' => 'Basket not found',], 404);
@@ -92,12 +87,6 @@ public function filter(Request $request)
 
     public function update(UpdateBasketsRequest $request, Basket $basket)
     {
-        // $basket = Basket::find($basket);
-        // if(!$basket){
-        //     return response()->json([
-        //         'message' => 'Brand not found.',
-        //     ], 404);
-        // }
         $basket->update($request->validated());
         $data =new BasketResource($basket);
         return response()->json(['message'=>'Basket Updated Successfully', 'data' => $data],200);
@@ -105,20 +94,12 @@ public function filter(Request $request)
 
     public function destroy(Basket $basket)
     {
-        // $this->authorize('delete', $basket);
-        // $basket = Basket::find($basket);
-        // if(!$basket){
-        //     return response()->json([
-        //         'message' => 'Brand not found.',
-        //     ], 404);
-        // }
         $basket->delete();
         return response()->json(['message' => 'Basket deleted']);
     }
 
     public function changeStatus(Request $request, Basket $basket)
     {
-        // $this->authorize('update', $basket);
 
         $request->validate(['status' => 'required|string|in:pending,in_progress,done']);
 

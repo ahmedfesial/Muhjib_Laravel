@@ -50,7 +50,6 @@ public function status($id)
 {
     $importLog = ImportLog::with('user')->findOrFail($id);
 
-    // Optional: لو عايز تمنع أي حد غير صاحب الاستيراد من الإطلاع
     if ($importLog->user_id !== Auth::id()) {
         return response()->json(['message' => 'Unauthorized'], 403);
     }

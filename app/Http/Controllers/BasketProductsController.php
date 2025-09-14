@@ -13,7 +13,6 @@ class BasketProductsController extends Controller
     use AuthorizesRequests;
     public function store(StoreBasketProductsRequest $request)
     {
-        // $this->authorize('create', BasketProduct::class);
 
          $basketId = $request->input('basket_id');
     $products = $request->input('products');
@@ -41,13 +40,6 @@ class BasketProductsController extends Controller
 
     public function update(UpdateBasketProductsRequest $request, BasketProduct $basketProduct)
     {
-        // $this->authorize('update', $basketProduct);
-        // $basketProduct = BasketProduct::find($basketProduct);
-        // if(!$basketProduct){
-        //     return response()->json([
-        //         'message' => 'Brand not found.',
-        //     ], 404);
-        // }
         $basketProduct->update($request->validated());
             $basketProduct->load('product'); // تحميل بيانات المنتج
         $data=new BasketProductResource($basketProduct);
@@ -56,13 +48,6 @@ class BasketProductsController extends Controller
 
     public function destroy(BasketProduct $basketProduct)
     {
-        // $this->authorize('delete', $basketProduct);
-        // $basketProduct = BasketProduct::find($basketProduct);
-        // if(!$basketProduct){
-        //     return response()->json([
-        //         'message' => 'Brand not found.',
-        //     ], 404);
-        // }
         $basketProduct->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }

@@ -15,7 +15,6 @@ class BrandController extends Controller
 
     public function index(Request $request)
     {
-        // $this->authorize('viewAny', Brand::class);
         $query = $this->filter($request);
     $brands = $query->paginate(10);
 
@@ -30,12 +29,6 @@ class BrandController extends Controller
    private function filter(Request $request)
 {
     $query = Brand::query();
-
-    // ✅ رجّع البراندات المفعلة فقط
-    // $query->where('status', true);
-
-    // لو حابب تحافظ على فلترة is_hidden كمان، سيب السطر ده:
-    // $query->where('is_hidden', false);
 
     if ($request->filled('name_en')) {
         $query->where('name_en', 'like', '%' . $request->name_en . '%');
@@ -149,7 +142,6 @@ public function store(Request $request)
     if ($request->hasFile('catalog_pdf_url')) {
         $validated['catalog_pdf_url'] = $request->file('catalog_pdf_url')->store('brands/catalogs', 'public');
     }
-    // dd($validated); // array of validated data
     $brand->update($validated);
     $data = new BrandResource($brand);
 
@@ -164,7 +156,6 @@ public function store(Request $request)
 
     public function destroy(Brand $brand)
     {
-        // $this->authorize('delete', $brand);
 
         $brand->delete();
         return response()->json(['message' => 'Brand deleted successfully'],200);

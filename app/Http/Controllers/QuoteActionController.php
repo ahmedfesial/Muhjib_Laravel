@@ -18,7 +18,6 @@ class QuoteActionController extends Controller
     use AuthorizesRequests;
     public function index()
     {
-        // $this->authorize('viewAny', QuoteAction::class);
         $data =QuoteActionResource::collection(QuoteAction::latest()->paginate(10));
         return response()->json([
             'message' => 'Quote Actions Retrieved Successfully',
@@ -28,7 +27,6 @@ class QuoteActionController extends Controller
 
     public function store(StoreQuoteActionRequest $request)
     {
-        // $this->authorize('create', QuoteAction::class);
         $quoteAction = QuoteAction::create($request->validated());
         $data =new QuoteActionResource($quoteAction);
         return response()->json([
@@ -50,7 +48,6 @@ class QuoteActionController extends Controller
     $quoteRequest->assigned_to = $request->forwarded_to_user_id;
     $quoteRequest->save();
 
-    // تحميل العلاقات المرتبطة إن وجدت (ضيف أو شيل حسب الحاجة)
     $quoteRequest->load(['creator', 'products']);
     $data = new QuoteRequestResource($quoteRequest);
     return response()->json([
@@ -102,10 +99,6 @@ class QuoteActionController extends Controller
 
     $request = PriceChangeRequest::findOrFail($requestId);
 
-    // if ($request->status !== 'pending') {
-    //     return response()->json(['message' => 'Request already processed'], 400);
-    // }
-
     $quote = QuoteAction::findOrFail($request->quote_action_id);
     $quote->price = $request->requested_price;
     $quote->save();
@@ -134,10 +127,6 @@ public function rejectPriceChange($requestId)
     }
 
     $request = PriceChangeRequest::findOrFail($requestId);
-
-    // if ($request->status !== 'pending') {
-    //     return response()->json(['message' => 'Request already processed'], 400);
-    // }
 
     $request->status = 'rejected';
     $request->save();

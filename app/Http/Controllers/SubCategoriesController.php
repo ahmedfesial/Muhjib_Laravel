@@ -14,7 +14,6 @@ class SubCategoriesController extends Controller
     use AuthorizesRequests;
     public function index()
     {
-        // $this->authorize('viewAny', SubCategories::class);
         $subcategory = SubCategories::all();
         $data =SubCategoryResource::collection($subcategory);
         return response()->json(['message' => 'Sub Categories Retrieved Successfully', 'data'=>$data],200);
@@ -22,7 +21,6 @@ class SubCategoriesController extends Controller
 
     public function store(StoreSubCategoriesRequest $request)
     {
-        // $this->authorize('create', SubCategories::class);
         $subcategory = SubCategories::create($request->validated());
         $data=new SubCategoryResource($subcategory);
         return response()->json(['message'=>'Sub Category Created Successfully', 'data'=>$data],201);
@@ -30,7 +28,6 @@ class SubCategoriesController extends Controller
 
     public function show($id)
     {
-        // $this->authorize('view', $subCategory);
         $subCategory = SubCategories::find($id);
         if(!$subCategory){
             return response()->json([
@@ -43,32 +40,24 @@ class SubCategoriesController extends Controller
 
 public function update(UpdateSubCategoriesRequest $request, SubCategories $subCategory)
 {
-    // تحديث البيانات النصية
     $subCategory->update($request->except(['cover_image', 'background_image']));
 
-    // ✅ التعامل مع cover_image
     if ($request->hasFile('cover_image')) {
-        // حذف القديمة لو موجودة
         if ($subCategory->cover_image && Storage::disk('public')->exists($subCategory->cover_image)) {
             Storage::disk('public')->delete($subCategory->cover_image);
         }
 
-        // رفع الجديدة
         $subCategory->cover_image = $request->file('cover_image')->store('subcategories/covers', 'public');
     }
 
-    // ✅ التعامل مع background_image
     if ($request->hasFile('background_image')) {
-        // حذف القديمة لو موجودة
         if ($subCategory->background_image && Storage::disk('public')->exists($subCategory->background_image)) {
             Storage::disk('public')->delete($subCategory->background_image);
         }
 
-        // رفع الجديدة
         $subCategory->background_image = $request->file('background_image')->store('subcategories/backgrounds', 'public');
     }
 
-    // حفظ التغييرات
     $subCategory->save();
 
     $data = new SubCategoryResource($subCategory);
@@ -81,13 +70,6 @@ public function update(UpdateSubCategoriesRequest $request, SubCategories $subCa
 
     public function destroy(SubCategories $subCategory)
     {
-        // $this->authorize('delete', $subCategory);
-        // $subCategory = SubCategories::find($subCategory);
-        // if(!$subCategory){
-        //     return response()->json([
-        //         'message' => 'Sub Category not found.',
-        //     ], 404);
-        // }
         $subCategory->delete();
         return response()->json(['message' => 'Deleted successfully'],200);
     }

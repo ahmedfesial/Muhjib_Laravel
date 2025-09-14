@@ -13,18 +13,15 @@ class AdminController extends Controller
     public function dashboard()
     {
         // Only admin and super admin should access this
-        // $this->authorize('viewAdminDashboard', User::class);
 
         return response()->json([
             'message' => 'Welcome to the Admin Dashboard',
             'total_users' => User::count(),
-            // Add other stats if needed
         ]);
     }
     // Super Admin and admin create and manage users
     public function manageUsers()
     {
-        // $this->authorize('manageUsers', User::class);
         $users = User::where('role', '!=', 'super-admin')->get();
      
         return response()->json([
@@ -34,7 +31,6 @@ class AdminController extends Controller
     }
 
     public function deleteUser(User $user){
-        // $this->authorize('deleteUser', $user);
 
         if ($user->role === 'super-admin') {
             return response()->json([

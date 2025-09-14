@@ -120,8 +120,6 @@ public function resetPassword(Request $request)
                 'password' => Hash::make($password),
             ])->save();
 
-            // Optional: login user automatically after reset
-            // Auth::login($user);
         }
     );
 

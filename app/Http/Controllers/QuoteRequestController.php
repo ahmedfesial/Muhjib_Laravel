@@ -15,7 +15,6 @@ class QuoteRequestController extends Controller
     use AuthorizesRequests;
     public function index(Request $request)
 {
-    // $this->authorize('viewAny', QuoteRequest::class);
     $query = $this->filter($request);
 
 $data = QuoteRequestResource::collection(
@@ -74,7 +73,6 @@ $quoteRequest->load(['creator', 'products', 'client']);
 
     public function show($id)
     {
-        // $this->authorize('view', $quoteRequest);
 $quoteRequest = QuoteRequest::with('client')->find($id);
         if(!$quoteRequest){
             return response()->json([
@@ -90,12 +88,6 @@ $quoteRequest = QuoteRequest::with('client')->find($id);
 
     public function update(UpdateQuoteRequestRequest $request, QuoteRequest $quoteRequest)
     {
-        // $this->authorize('update', $quoteRequest);
-        // if(!$quoteRequest){
-        //     return response()->json([
-        //         'message'=>'Quote Request Not Found'
-        //     ],404);
-        // }
         $quoteRequest->update($request->validated());
         $data =new QuoteRequestResource($quoteRequest);
         return response()->json([
@@ -111,15 +103,12 @@ public function approveQuote($id)
         return response()->json(['message' => 'Quote is not pending.'], 400);
     }
 
-    // 1. تحديث حالة الكوتيشن
     $quote->update(['status' => 'approved']);
 
-    // 2. تفعيل العميل
     if ($quote->client) {
         $quote->client->update(['status' => 'approved']);
     }
 
-    // 3. إنشاء باسكت جديدة
     $basket = \App\Models\Basket::create([
         'name' => 'Basket for Quote ' . $quote->id,
         'client_id' => $quote->client_id,
@@ -128,7 +117,6 @@ public function approveQuote($id)
         'include_price_flag' => true, // حسب تصميمك
     ]);
 
-    // 4. إضافة المنتجات من الكوتيشن إلى الباسكت
     foreach ($quote->products as $product) {
         $basket->basketProducts()->create([
             'product_id' => $product->id,
@@ -137,7 +125,6 @@ public function approveQuote($id)
         ]);
     }
 
-    // تحميل العلاقات للسلة
     $basket->load(['client', 'creator', 'basketProducts.product']);
 
     return response()->json([
@@ -156,7 +143,6 @@ public function rejectQuote($id)
 
     $quote->update(['status' => 'rejected']);
 
-    // العميل يفضل مخفي
     return response()->json(['message' => 'Quote rejected and client hidden.']);
 }
 

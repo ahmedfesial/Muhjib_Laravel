@@ -17,7 +17,6 @@ class ProductPriceController extends Controller
     use AuthorizesRequests;
     public function index()
     {
-        // $this->authorize('viewAny', ProductPrice::class);
         $data=ProductPriceResource::collection(ProductPrice::all());
         return response()->json([
             'message' => 'Product Prices Retrieved Successfully',
@@ -52,7 +51,6 @@ class ProductPriceController extends Controller
 
     public function store(StoreProductPriceRequest $request)
     {
-        // $this->authorize('create', ProductPrice::class);
         $price = ProductPrice::create($request->validated());
         $data = new ProductPriceResource($price);
         return response()->json([
@@ -64,7 +62,6 @@ class ProductPriceController extends Controller
 
     public function update(UpdateProductPriceRequest $request, ProductPrice $productPrice)
     {
-        // $this->authorize('update', $productPrice);
         $productPrice = ProductPrice::find($productPrice);
         if(!$productPrice){
             return response()->json([
@@ -81,13 +78,7 @@ class ProductPriceController extends Controller
 
     public function destroy(ProductPrice $productPrice)
     {
-        // $this->authorize('delete', $productPrice);
-        // $productPrice = ProductPrice::find($productPrice);
-        // if(!$productPrice){
-        //     return response()->json([
-        //         'message' => 'Product Price Not Found'
-        //     ],404);
-        // }
+
         $productPrice->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }

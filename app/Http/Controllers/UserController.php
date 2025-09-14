@@ -7,17 +7,14 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Client;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    // use AuthorizesRequests;
     public function index()
 {
-    // $this->authorize('viewAny', User::class);
     $users = User::get();
     $data = UserResource::collection($users);
     return response()->json([
@@ -50,9 +47,6 @@ class UserController extends Controller
     }
     public function Admindashboard(){
 
-        // For Super Admin and admin
-        //  $this->authorize('manageUsers', User::class);
-
         return response()->json([
             'message' => 'All Users Retrieved Successfully',
             'data' => User::all(),
@@ -61,9 +55,6 @@ class UserController extends Controller
 
     public function create(StoreUserRequest $request)
     {
-        // Make Resource
-        // User can Register but not create super admin and admin can create user
-        // $this->authorize('create', User::class);
         $data = $request->validated();
         if ($request->hasFile('image')) {
         $validated['image'] = $request->file('image')->store('users/images', 'public');
@@ -91,7 +82,6 @@ class UserController extends Controller
 
     public function updateProfile(UpdateUserRequest $request, User $user)
     {
-        // $this->authorize('update', User::class);
         $validated = $request->validated();
         if ($request->hasFile('image')) {
         // Delete old image
@@ -117,7 +107,6 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // Only Super Admin Can delete user
-        // $this->authorize('destroy', User::class);
         $user->delete();
         return response()->json(['message' => 'User deleted successfully.'],200);
     }

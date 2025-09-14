@@ -13,7 +13,6 @@ class MainCategoriesController extends Controller
     use AuthorizesRequests;
     public function index()
     {
-        // $this->authorize('viewAny', MainCategories::class);
         $mainCategory = MainCategories::all();
         $data =MainCategoryResource::collection($mainCategory);
         return response()->json(['message' => 'Main Categories Retrieved Successfully', 'data'=>$data],200);
@@ -23,7 +22,6 @@ class MainCategoriesController extends Controller
 
     public function store(StoreMainCategoriesRequest $request)
     {
-        // $this->authorize('create', MainCategories::class);
         $validated = $request->validate([
         'brand_id' => 'required|exists:brands,id',
         'name_en' => 'required|string|max:255',
@@ -43,7 +41,6 @@ class MainCategoriesController extends Controller
 
     public function show($id)
     {
-        // $this->authorize('view', $mainCategory);
         $mainCategory = MainCategories::find($id);
         if(!$mainCategory){
             return response()->json([
@@ -65,13 +62,11 @@ class MainCategoriesController extends Controller
     ]);
 
     if ($request->hasFile('image_url')) {
-        // نخزن الصورة ونحفظ المسار في image_url
         $validated['image_url'] = $request->file('image_url')->store('main_categories', 'public');
     }
 
     $mainCategory->update($validated);
 
-    // dd($validatedata);
     return response()->json([
         'message' => 'Main Category Updated Successfully',
         'data' => new MainCategoryResource($mainCategory)
@@ -80,12 +75,6 @@ class MainCategoriesController extends Controller
 
     public function destroy(MainCategories $mainCategory)
     {
-        // $this->authorize('delete', $mainCategory);
-        // if(!$mainCategory){
-        //     return response()->json([
-        //         'message' => 'Main Category not found.',
-        //     ], 404);
-        // }
         if ($mainCategory->image_url) {
             Storage::disk('public')->delete($mainCategory->image_url);
         }

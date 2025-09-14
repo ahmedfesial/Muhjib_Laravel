@@ -19,7 +19,6 @@ class PriceUploadLogController extends Controller
     use AuthorizesRequests;
     public function index()
     {
-        // $this->authorize('viewAny', PriceUploadLog::class);
 
         $logs = PriceUploadLog::with('user')->latest()->get();
         $data =PriceUploadLogResource::collection($logs);

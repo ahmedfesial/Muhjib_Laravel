@@ -25,11 +25,10 @@ class ProductController extends Controller
         $query->where(function($q) use ($searchTerm) {
             $q->where('name_en', 'like', "%$searchTerm%")
               ->orWhere('name_ar', 'like', "%$searchTerm%")
-              ->orWhere('sku', 'like', "%$searchTerm%"); // نضيف البحث بالـ SKU في البحث العام
+              ->orWhere('sku', 'like', "%$searchTerm%"); // بحث بالـ SKU في البحث العامنضيف ال
         });
     }
 
-    // ✅ فلترة حسب الحقول
     if ($request->filled('name_en')) {
         $query->where('name_en', $request->name_en);
     }
@@ -47,8 +46,6 @@ class ProductController extends Controller
     }
 
     $products = $query->paginate(15);
-    // $data = ProductResource::collection($products);
-    // dd($products->toArray());
     return response()->json([
         'message' => 'Products Retrieved Successfully',
         'data' => $products,
@@ -88,7 +85,6 @@ class ProductController extends Controller
     return $query;
 }
 
-    // helper method inside class
     protected function uploadFile($request, $field, $folder)
 {
     if ($request->hasFile($field)) {
@@ -96,7 +92,6 @@ class ProductController extends Controller
     }
     return null;
 }
-    // 🔧 Helper: Delete file from storage
     protected function deleteFile($path)
     {
         if ($path && Storage::disk('public')->exists($path)) {
@@ -118,7 +113,6 @@ class ProductController extends Controller
     if ($action === 'increase') {
         $product->quantity += $amount;
     } elseif ($action === 'decrease') {
-        // Prevent quantity from going below zero
         $product->quantity = max(0, $product->quantity - $amount);
     }
 
@@ -132,7 +126,6 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request)
     {
-        // $this->authorize('create', Product::class);
 
         $validated = $request->validate([
         'name_en' => 'nullable|string|max:255',
@@ -140,7 +133,7 @@ class ProductController extends Controller
         'description_ar' => 'nullable|string',
         'features' => 'nullable|string',
         'main_colors' => 'nullable|array',
-        'main_colors.*' => 'nullable', // سواء نص أو صورة هنتعامل معاه يدويًا
+        'main_colors.*' => 'nullable',
         'brand_id' => 'nullable|exists:brands,id',
         'sub_category_id' => 'nullable|exists:sub_categories,id',
         'main_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -198,18 +191,15 @@ class ProductController extends Controller
 
 
 $legends = [];
-// ثم أضفهم إلى البيانات قبل الإنشاء
 $mainColors = [];
 
 if ($request->has('main_colors')) {
     foreach ($request->file('main_colors', []) ?? [] as $index => $colorFile) {
-        // لو صورة
         if ($colorFile instanceof \Illuminate\Http\UploadedFile) {
             $mainColors[] = $colorFile->store('products/colors', 'public');
         }
     }
 
-    // النصوص بتيجي مش من file()، فهنجيبها من input()
     foreach ($request->input('main_colors', []) as $index => $colorText) {
         if (!empty($colorText) && !($colorText instanceof \Illuminate\Http\UploadedFile)) {
             $mainColors[] = $colorText;
@@ -223,26 +213,20 @@ $validated['main_colors'] = $mainColors;
 $product = Product::create($validated);
 
 foreach ($pricesData as $price) {
-    $product->prices()->create($price); // ✅ بيرتبط بعلاقة hasMany
+    $product->prices()->create($price);
 }
 
 
     $product->load('prices');
-// ربط الشهادات
 if ($request->has('certificate_ids')) {
     $product->certificates()->sync($request->certificate_ids);
 }
 
-// ربط الليجندات
 if ($request->has('legend_ids')) {
     $product->legends()->sync($request->legend_ids);
 }
 
-    // $product = Product::create($validated);
     $product->load(['certificates', 'legends']);
-// dd($product->prices->toArray());
-    // dd($product->toArray());
-        // $data = ;
         return response()->json([
             'message' =>'Product Created Successfully',
             'data' => new ProductResource($product),
@@ -251,14 +235,12 @@ if ($request->has('legend_ids')) {
 
     public function show($id)
     {
-        // $this->authorize('view', $product);
         $product = Product::with(['certificates', 'legends', 'prices'])->find($id);
         if(!$product){
             return response()->json([
                 'message' => 'Product Not found'
             ],404);
         }
-        // dd($product->toArray());
         return response()->json([
             'message' => 'Product Retrieved Successfully',
             'data' => $product,
@@ -271,21 +253,12 @@ private function isImagePath($value)
 
     public function update(UpdateProductRequest $request, Product $product)
     {
-        // $this->authorize('update', $product);
-        // $product = Product::find($product);
-        // if(!$product){
-        //     return response()->json([
-        //         'message' => 'Product Not found'
-        //     ],404);
-        // }
         $data = $request->validated();
-         // Optional: delete old files if new ones uploaded
         if ($request->hasFile('main_image')) {
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
     if ($request->hasFile('images')) {
-        // حذف الصور القديمة
         foreach ($product->images ?? [] as $oldImage) {
             $this->deleteFile($oldImage);
         }
@@ -306,7 +279,6 @@ private function isImagePath($value)
     $colors = [];
 
 if ($request->has('main_colors')) {
-    // احذف الصور القديمة لو عايز (اختياري)
     foreach ($product->main_colors ?? [] as $oldColor) {
         if ($this->isImagePath($oldColor)) {
             $this->deleteFile($oldColor);
@@ -335,12 +307,10 @@ if ($request->has('main_colors')) {
     $certificates = [];
     $legends = [];
         $product->update($data);
-        // ربط الشهادات
 if ($request->has('certificate_ids')) {
     $product->certificates()->sync($request->certificate_ids);
 }
 
-// ربط الليجندات
 if ($request->has('legend_ids')) {
     $product->legends()->sync($request->legend_ids);
 }
@@ -355,8 +325,7 @@ if ($request->has('legend_ids')) {
 public function downloadTechnicalSheet(Product $product)
 {
     $product->load(['certificates', 'legends', 'brand', 'subCategory']);
-    // dd($product->toArray());
-    // مرر بيانات المنتج إلى View Blade
+
     $pdf = PDF::loadView('pdf.technical_sheet', ['product' => $product]);
 
     return $pdf->download("Technical_Data_Sheet_{$product->id}.pdf");
@@ -364,14 +333,6 @@ public function downloadTechnicalSheet(Product $product)
 
     public function destroy(Product $product)
     {
-        // $this->authorize('delete', $product);
-        // $product = Product::find($product);
-        // if(!$product){
-        //     return response()->json([
-        //         'message' => 'Product Not found'
-        //     ],404);
-        // }
-        // Delete associated files
         $this->deleteFile($product->main_image);
         $this->deleteFile($product->pdf_hs);
         $this->deleteFile($product->pdf_msds);

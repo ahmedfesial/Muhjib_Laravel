@@ -95,7 +95,7 @@ public function generateCatalog(Request $request)
 
     $basket = Basket::with('basketProducts.product.subCategory', 'client')->findOrFail($request->basket_id);
 
-    $client = $basket->client; // ← هنا هجيب العميل مباشرة من الباسكت
+    $client = $basket->client;
 
     if (!$client) {
         return response()->json([
@@ -165,7 +165,6 @@ public function convertToCatalog(Request $request, Basket $basket)
 
     $basketProducts = $basket->basketProducts()->with('product.subCategory')->get();
 
-    // تحويل إلى شكل templateProducts
     $templateProducts = $basketProducts->map(function ($item) {
         $product = $item->product;
         return (object)[
@@ -175,11 +174,10 @@ public function convertToCatalog(Request $request, Basket $basket)
             'image' => $product->main_image,
             'quantity' => $item->quantity,
             'total' => $item->quantity * $item->price,
-            'product' => $product, // نضيفه علشان نقدر نستخدم subCategory بعدين
+            'product' => $product,
         ];
     });
 
-    // نجمع المنتجات حسب الـ subCategory
     $groupedProducts = $templateProducts->groupBy(function ($item) {
         return optional($item->product->subCategory)->id;
     });
@@ -191,7 +189,6 @@ public function convertToCatalog(Request $request, Basket $basket)
         'created_by' => $user->id,
     ]);
 
-    // 🟢 تمرير المتغير groupedProducts
     $pdf = Pdf::loadView('templates.pdf', [
         'template' => $template,
         'user' => $user,
@@ -221,27 +218,22 @@ public function convertToCatalog(Request $request, Basket $basket)
 
 public function revertToBasket(Request $request, Catalog $catalog)
 {
-    // تحقق من الصلاحية
     if ($catalog->created_by !== Auth::id()) {
         return response()->json(['message' => 'Unauthorized'], 403);
     }
 
-    // تحميل الباسكت
     $basket = $catalog->basket;
     if (!$basket) {
         return response()->json(['message' => 'No basket found for this catalog.'], 404);
     }
 
-    // تغيير الحالة إلى pending
     $basket->status = 'in_progress';
     $basket->save();
 
-    // (اختياري) حذف ملف الـ PDF
     if (Storage::disk('public')->exists($catalog->pdf_path)) {
         Storage::disk('public')->delete($catalog->pdf_path);
     }
 
-    // (اختياري) حذف الكاتالوج نفسه
     $catalog->delete();
 
     return response()->json([
@@ -250,34 +242,4 @@ public function revertToBasket(Request $request, Catalog $catalog)
     ]);
 }
 
-
-    // public function update(UpdateCatalogRequest $request, Catalog $catalog)
-    // {
-    //     $this->authorize('update', $catalog);
-    //     $catalog = Catalog::find($catalog);
-    //     if(!$catalog){
-    //         return response()->json([
-    //             'message' => 'Catalog not found.',
-    //         ], 404);
-    //     }
-    //     $catalog->update($request->validated());
-    //     $data =new CatalogResource($catalog);
-    //     return response()->json([
-    //         'message' => 'Catalog Updated Successfully',
-    //         'data' => $data
-    //     ],200);
-    // }
-
-    // public function destroy(Catalog $catalog)
-    // {
-    //     $this->authorize('delete', $catalog);
-    //     $catalog = Catalog::find($catalog);
-    //     if(!$catalog){
-    //         return response()->json([
-    //             'message' => 'Catalog not found.',
-    //         ], 404);
-    //     }
-    //     $catalog->delete();
-    //     return response()->json(['message' => 'Catalog Deleted Successfully'],200);
-    // }
 }

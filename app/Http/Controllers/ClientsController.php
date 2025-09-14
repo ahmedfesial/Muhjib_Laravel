@@ -25,10 +25,8 @@ public function index(Request $request)
     $user = Auth::user();
 
     if ($user->role === 'super_admin') {
-        // رجع كل الكلاينت بدون شروط
         $clients = Client::paginate(10);
     } else {
-        // العملاء الموافق عليهم ولهم Quote Approved فقط
         $clients = Client::where('status', 'approved')
                          ->whereHas('quoteRequest', function ($query) {
                              $query->where('status', 'approved');
@@ -85,7 +83,7 @@ public function index(Request $request)
         'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
-$priceType = $validated['default_price_type'] ?? 'A'; // لو مش موجود، نخليها 'A'
+$priceType = $validated['default_price_type'] ?? 'A';
 $status = $priceType !== 'A' ? 'pending' : 'approved';
 
     // Upload logo if exists
@@ -153,7 +151,6 @@ public function reject($id)
 
     public function show($id)
     {
-        // $this->authorize('view', $id);
         $client = Client::find($id);
         if(!$client){
             return response()->json([
@@ -175,8 +172,7 @@ public function reject($id)
         $validated['logo'] = $request->file('logo')->store('clients/logos', 'public');
     }
 
-    // لو المستخدم بعت status يدويًا، هنستخدمه
-    // غير كده، نحسبه تلقائيًا بناء على default_price_type
+
     if (!isset($validated['status'])) {
         $priceType = $validated['default_price_type'] ?? 'A';
         $validated['status'] = $priceType !== 'A' ? 'pending' : 'approved';
@@ -185,7 +181,6 @@ public function reject($id)
 
     $client->update($validated);
 
-    // إرسال إشعار فقط لو الحالة الجديدة "pending"
     if ($validated['status'] === 'pending') {
         $superAdmins = User::where('role', 'super_admin')->get();
 
@@ -217,7 +212,6 @@ public function createClientSubfolder(Request $request, $clientId)
 
     $baseFolderPath = storage_path("app/public/client_files/{$client->id}/");
 
-    // لو مش موجود الاسم، نولده تلقائيًا
     $folderName = $request->folder_name;
 
     if (!$folderName) {
@@ -278,7 +272,6 @@ public function viewClientSubfolder(Request $request, $clientId, $folderName = n
 {
     $client = Client::findOrFail($clientId);
 
-    // لو ما فيش folderName، استخدم المجلد الرئيسي للعميل
     $folderPath = $folderName
         ? "client_files/{$client->id}/{$folderName}"
         : "client_files/{$client->id}";
@@ -336,7 +329,7 @@ public function deleteClientFolder(Request $request, $clientId)
 public function uploadFolder(Request $request, $clientId)
 {
     $request->validate([
-        'folder_zip' => 'required|file|mimes:zip|max:20480', // 20 MB max, عدل حسب الحاجة
+        'folder_zip' => 'required|file|mimes:zip|max:20480',
     ]);
 
     $client = Client::findOrFail($clientId);
@@ -347,25 +340,19 @@ public function uploadFolder(Request $request, $clientId)
 
     $fullZipPath = storage_path('app/public/' . $zipPath);
 
-    // فك الضغط
     $zip = new \ZipArchive;
     if ($zip->open($fullZipPath) === TRUE) {
         $extractPath = storage_path("app/public/client_files/{$client->id}/");
         $zip->extractTo($extractPath);
         $zip->close();
 
-        // امسح ملف ZIP بعد ما تفك الضغط لو حابب
         unlink($fullZipPath);
-
-        // ممكن هنا تعالج الملفات وتخزن بياناتها في DB لو حابب
-        // مثلا تمشي على كل الملفات المفكوكة وتضيفهم في ClientFile model
 
         $files = File::allFiles($extractPath);
 
         $uploadedFiles = [];
 
         foreach ($files as $file) {
-            // خذ اسم الملف فقط بدون المسار الكامل داخل التخزين
             $relativePath = str_replace($extractPath, '', $file->getPathname());
 
             $clientFile = ClientFile::create([
@@ -417,7 +404,6 @@ public function uploadFiles(Request $request, $clientId)
 
         $uploadedFiles[] = $clientFile;
     }
-    // dd($uploadedFiles);
     return response()->json([
     'message' => 'Files uploaded successfully.',
     'data' => array_map(function($file) {
@@ -447,7 +433,6 @@ public function viewClientFolder($clientId)
     $client = Client::findOrFail($clientId);
     $files = $client->files;
 
-    // ضيف رابط التحميل لكل ملف
     $filesData = $files->map(function ($file) {
         return [
             'id' => $file->id,
@@ -468,13 +453,10 @@ public function viewClientFolder($clientId)
 }
 public function getClientFolders($clientId)
 {
-    // تأكد أن العميل موجود
     $client = Client::findOrFail($clientId);
 
-    // مسار مجلد العميل
     $basePath = storage_path("app/public/client_files/{$client->id}");
 
-    // تأكد أن المجلد موجود
     if (!File::exists($basePath)) {
         return response()->json([
             'message' => 'No folders found.',
@@ -482,7 +464,6 @@ public function getClientFolders($clientId)
         ], 200);
     }
 
-    // الحصول على كل المجلدات داخل مجلد العميل
     $folders = File::directories($basePath);
 
     $folderDetails = [];
@@ -490,10 +471,8 @@ public function getClientFolders($clientId)
     foreach ($folders as $folderPath) {
         $folderName = basename($folderPath);
 
-        // الملفات داخل الفولدر
         $files = File::files($folderPath);
 
-        // حجم الفولدر
         $size = 0;
         foreach ($files as $file) {
             $size += $file->getSize();
@@ -518,7 +497,6 @@ public function generateQr($clientId)
 {
     $client = Client::findOrFail($clientId);
 
-    // تأكد إن فيه Route بيروح لـ /client-folder/{id}
     $qrContent = url("/client-folder/{$client->id}");
 
     $qr = QrCode::format('svg')->size(200)->generate($qrContent);
@@ -529,12 +507,6 @@ public function generateQr($clientId)
 
     public function destroy(Client $client)
     {
-        // $this->authorize('delete', $client);
-        // if(!$client){
-        //     return response()->json([
-        //     'message' => 'Clients NOt Found'
-        // ],404);
-        // }
         $client->delete();
         return response()->json(['message' => 'Client deleted successfully'],200);
     }
