@@ -202,7 +202,7 @@ Route::group(['prefix' => 'sub-categories'], function () {
     Route::get('/', [SubCategoriesController::class, 'index']);
     Route::post('/create', [SubCategoriesController::class, 'store']);
     Route::get('show/{subCategory}', [SubCategoriesController::class, 'show']);
-    Route::put('update/{subCategory}', [SubCategoriesController::class, 'update']);
+    Route::post('update/{subCategory}', [SubCategoriesController::class, 'update']);
     Route::delete('delete/{subCategory}', [SubCategoriesController::class, 'destroy']);
     Route::post('/{subCategory}/upload-images', [SubCategoriesController::class, 'updateSubCategoryImages']);
 });
@@ -227,10 +227,10 @@ Route::post('/{template}/client', [TemplateController::class, 'addClient']);
 Route::post('/{template}/products', [TemplateController::class, 'addProductToTemplate']);
 Route::get('/{template}/pdf', [TemplateController::class, 'generatePDF']);
 Route::post('/{template}/cover-images', [TemplateController::class, 'uploadCoverImages']);
-    // Route::get('/', [TempletesController::class, 'index']);
-    // Route::post('/create', [TempletesController::class, 'store']);
     // Route::get('show/{id}', [TempletesController::class, 'show']);
     Route::delete('/delete/{template}', [TemplateController::class, 'destroy']);
+    Route::put('/update/{template}', [TemplateController::class, 'update']);
+    Route::post('/{template}/toggle-status', [TemplateController::class, 'toggleStatus']);
 });
 
 // Catalog Routes

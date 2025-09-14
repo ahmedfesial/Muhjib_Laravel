@@ -17,6 +17,7 @@ class UpdateSubCategoriesRequest extends FormRequest
             'main_category_id' => 'sometimes|exists:main_categories,id',
             'name_en' => 'sometimes|string|max:255',
             'name_ar' => 'sometimes|string|max:255',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp',
         ];
     }
 }

@@ -8,7 +8,7 @@ use App\Http\Requests\UpdateSubCategoriesRequest;
 use App\Http\Resources\SubCategoryResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 class SubCategoriesController extends Controller
 {
     use AuthorizesRequests;
@@ -41,19 +41,43 @@ class SubCategoriesController extends Controller
         return response()->json(['message' => 'Sub Category Retrieved Successfully', 'data'=>$data],200);
     }
 
-    public function update(UpdateSubCategoriesRequest $request, SubCategories $subCategory)
-    {
-        // $this->authorize('update', $subCategory);
-        // $subCategory = SubCategories::find($subCategory);
-        // if(!$subCategory){
-        //     return response()->json([
-        //         'message' => 'Sub Category not found.',
-        //     ], 404);
-        // }
-        $subCategory->update($request->validated());
-        $data=new SubCategoryResource($subCategory);
-        return response()->json(['message' => 'Sub Category Updated Successfully', 'data'=>$data],200);
+public function update(UpdateSubCategoriesRequest $request, SubCategories $subCategory)
+{
+    // تحديث البيانات النصية
+    $subCategory->update($request->except(['cover_image', 'background_image']));
+
+    // ✅ التعامل مع cover_image
+    if ($request->hasFile('cover_image')) {
+        // حذف القديمة لو موجودة
+        if ($subCategory->cover_image && Storage::disk('public')->exists($subCategory->cover_image)) {
+            Storage::disk('public')->delete($subCategory->cover_image);
+        }
+
+        // رفع الجديدة
+        $subCategory->cover_image = $request->file('cover_image')->store('subcategories/covers', 'public');
     }
+
+    // ✅ التعامل مع background_image
+    if ($request->hasFile('background_image')) {
+        // حذف القديمة لو موجودة
+        if ($subCategory->background_image && Storage::disk('public')->exists($subCategory->background_image)) {
+            Storage::disk('public')->delete($subCategory->background_image);
+        }
+
+        // رفع الجديدة
+        $subCategory->background_image = $request->file('background_image')->store('subcategories/backgrounds', 'public');
+    }
+
+    // حفظ التغييرات
+    $subCategory->save();
+
+    $data = new SubCategoryResource($subCategory);
+
+    return response()->json([
+        'message' => 'Sub Category Updated Successfully',
+        'data' => $data
+    ], 200);
+}
 
     public function destroy(SubCategories $subCategory)
     {

@@ -23,7 +23,7 @@ class UpdateProductRequest extends FormRequest
             'pdf_msds' => 'nullable|file|mimes:pdf',
             'pdf_technical' => 'nullable|file|mimes:pdf',
             'hs_code' => 'nullable|string|max:50',
-            'sku' => 'nullable|string|max:100',
+            'sku' => 'nullable|string|max:100|unique:products,sku,' . $this->product->id,
             'pack_size' => 'nullable|string|max:100',
             'dimensions' => 'nullable|string|max:100',
             'capacity' => 'nullable|string|max:100',

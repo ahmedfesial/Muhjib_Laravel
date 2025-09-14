@@ -181,6 +181,83 @@ public function generatePDF(Template $template)
 }
 
 
+public function update(Request $request, Template $template)
+{
+    $data = $request->validate([
+        'name' => 'required|string',
+        'description' => 'nullable|string',
+        'logo' => 'nullable|image',
+        'cover_image_start.*' => 'nullable|image',
+        'cover_image_end.*' => 'nullable|image',
+        'background_position_start' => 'nullable|in:client,products',
+        'background_position_end' => 'nullable|in:client,products',
+    ]);
+
+    // ✅ تعديل الاسم والوصف
+    $template->name = $data['name'];
+    $template->description = $data['description'] ?? $template->description;
+
+    // ✅ تعديل اللوغو
+    if ($request->hasFile('logo')) {
+        if ($template->logo) {
+            Storage::disk('public')->delete($template->logo);
+        }
+        $template->logo = $request->file('logo')->store('templates', 'public');
+    }
+
+    $template->save();
+
+    // ✅ حذف الصور القديمة وإعادة رفع الجديدة
+    if ($request->hasFile('cover_image_start')) {
+        foreach ($template->startCoverImages as $image) {
+            Storage::disk('public')->delete($image->path);
+            $image->forceDelete();
+        }
+
+        foreach ($request->file('cover_image_start') as $image) {
+            $path = $image->store('templates/covers', 'public');
+            $template->coverImages()->create([
+                'path' => $path,
+                'position' => 'start',
+                'background_position' => $request->background_position_start ?? null,
+            ]);
+        }
+    }
+
+    if ($request->hasFile('cover_image_end')) {
+        foreach ($template->endCoverImages as $image) {
+            Storage::disk('public')->delete($image->path);
+            $image->forceDelete();
+        }
+
+        foreach ($request->file('cover_image_end') as $image) {
+            $path = $image->store('templates/covers', 'public');
+            $template->coverImages()->create([
+                'path' => $path,
+                'position' => 'end',
+                'background_position' => $request->background_position_end ?? null,
+            ]);
+        }
+    }
+
+    return response()->json([
+        'message' => 'Template updated successfully',
+        'template' => $template->load('startCoverImages', 'endCoverImages')
+    ]);
+}
+
+public function toggleStatus(Template $template)
+{
+    $template->status = !$template->status;
+    $template->save();
+
+    return response()->json([
+        'message' => 'Template status toggled successfully',
+        'status' => $template->status,
+    ]);
+}
+
+
 public function destroy(Template $template)
 {
     // حذف الصور من التخزين

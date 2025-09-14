@@ -148,7 +148,7 @@ class ProductController extends Controller
         'pdf_msds' => 'nullable|file|mimes:pdf|max:10000',
         'pdf_technical' => 'nullable|file|mimes:pdf|max:10000',
         'hs_code' => 'nullable|string|max:50',
-        'sku' => 'nullable|string|max:100',
+        'sku' => 'nullable|string|max:100|unique:products,sku',
         'pack_size' => 'nullable|string|max:100',
         'dimensions' => 'nullable|string|max:100',
         'capacity' => 'nullable|string|max:100',
@@ -182,6 +182,10 @@ class ProductController extends Controller
     if ($request->hasFile('pdf_technical')) {
         $validated['pdf_technical'] = $request->file('pdf_technical')->store('products/pdfs', 'public');
     }
+    if (!empty($validated['sku']) && Product::where('sku', $validated['sku'])->exists()) {
+        return response()->json(['message' => 'SKU already exists'], 422);
+    }
+
     $images = [];
     if ($request->hasFile('images')) {
         foreach ($request->file('images') as $image) {
@@ -293,6 +297,10 @@ private function isImagePath($value)
 
         $data['images'] = $newImages;
     }
+    if (!empty($data['sku']) && Product::where('sku', $data['sku'])->where('id', '!=', $product->id)->exists()) {
+        return response()->json(['message' => 'SKU already exists'], 422);
+    }
+
 
 
     $colors = [];
