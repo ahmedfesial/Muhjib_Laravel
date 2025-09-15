@@ -17,9 +17,7 @@ class BrandController extends Controller
     {
         $query = $this->filter($request);
     $brands = $query->paginate(10);
-
     $data = BrandResource::collection($brands);
-
     return response()->json([
         'message' => 'Brands Retrieved Successfully',
         'data' => $data
@@ -54,7 +52,7 @@ public function toggleStatus($id)
         return response()->json(['message' => 'Brand not found'], 404);
     }
 
-    $brand->status = !$brand->status; // تبديل الحالة
+    $brand->status = !$brand->status;
     $brand->save();
 
     return response()->json([
