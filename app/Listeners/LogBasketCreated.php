@@ -10,7 +10,9 @@ class LogBasketCreated
     public function handle(BasketCreated $event)
     {
         Activity::create([
-            'description' => "{$event->user->name} created basket #{$event->basket->id}"
+            'description' => "{$event->user->name} created basket #{$event->basket->id}",
+            'event_type' => 'basket_created',
+            'user_id' => $event->user->id, // لو عايز تربط الحدث بالمستخدم
         ]);
     }
 }

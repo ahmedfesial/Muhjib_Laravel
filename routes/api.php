@@ -79,7 +79,8 @@ Route::group(['prefix'=>'products'],function(){
     Route::get('/', [ProductController::class, 'index']);
     Route::post('/create', [ProductController::class, 'store']);
     Route::get('/show/{product}', [ProductController::class, 'show']);
-    Route::put('/update/{product}', [ProductController::class, 'update']);
+    // Route::post('/update/{product}', [ProductController::class, 'update']);
+    Route::put('/update/{product}', [ProductController::class, 'update']); // هذا سيعمل conflict
 // Search and Filter Endpoints
     Route::get('/search', [ProductController::class, 'search']);
     Route::get('/filter', [ProductController::class, 'filter']);

@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Http\JsonResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Mpdf\Mpdf;
 
 class ProductController extends Controller
 {
@@ -252,23 +254,63 @@ private function isImagePath($value)
 
     public function update(UpdateProductRequest $request, Product $product)
     {
-        $data = $request->validated();
+        $data = $request->validate([
+        'name_en' => 'nullable|string|max:255',
+        'name_ar' => 'nullable|string|max:255',
+        'description_ar' => 'nullable|string',
+        'features' => 'nullable|string',
+        'main_colors' => 'nullable|array',
+        'main_colors.*' => 'nullable',
+        'brand_id' => 'nullable|exists:brands,id',
+        'sub_category_id' => 'nullable|exists:sub_categories,id',
+        'main_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'pdf_hs' => 'nullable|file|mimes:pdf|max:10000',
+        'pdf_msds' => 'nullable|file|mimes:pdf|max:10000',
+        'pdf_technical' => 'nullable|file|mimes:pdf|max:10000',
+        'hs_code' => 'nullable|string|max:50',
+        'sku' => 'nullable|string|max:100|unique:products,sku',
+        'pack_size' => 'nullable|string|max:100',
+        'dimensions' => 'nullable|string|max:100',
+        'capacity' => 'nullable|string|max:100',
+        'specification' => 'nullable|string',
+        'price' => 'nullable|numeric|min:0',
+        'is_visible' => 'boolean',
+        'quantity' => 'nullable|integer|min:0',
+        'certificate_ids' => 'nullable|array',
+        'certificate_ids.*' => 'exists:certificates,id',
+        'legend_ids' => 'nullable|array',
+        'legend_ids.*' => 'exists:legends,id',
+        'images' => 'nullable|array',
+        'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'prices' => 'nullable|array',
+        'prices.*.price_type' => 'nullable|string',
+        'prices.*.value' => 'nullable|numeric',
+    ]);
         if ($request->hasFile('main_image')) {
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
-    if ($request->hasFile('images')) {
+    if ($request->has('images')) {
+        // احذف الصور القديمة
         foreach ($product->images ?? [] as $oldImage) {
             $this->deleteFile($oldImage);
         }
 
         $newImages = [];
-        foreach ($request->file('images') as $image) {
-            $newImages[] = $image->store('products/images', 'public');
+
+        foreach ($request->images as $image) {
+            if ($image instanceof \Illuminate\Http\UploadedFile) {
+                // لو صورة جديدة مرفوعة
+                $newImages[] = $image->store('products/images', 'public');
+            } elseif (is_string($image)) {
+                // لو مسار صورة محفوظ بالفعل
+                $newImages[] = $image;
+            }
         }
 
         $data['images'] = $newImages;
     }
+    // dd($request->images);
     if (!empty($data['sku']) && Product::where('sku', $data['sku'])->where('id', '!=', $product->id)->exists()) {
         return response()->json(['message' => 'SKU already exists'], 422);
     }
@@ -313,11 +355,13 @@ if ($request->has('certificate_ids')) {
 if ($request->has('legend_ids')) {
     $product->legends()->sync($request->legend_ids);
 }
-        $updatedData=new ProductResource($product);
+dd($product);
+        // $updatedData=new ProductResource($product);
         return response()->json([
             'message' => 'Product Updated Successfully',
             'data' => $updatedData
         ],200);
+
     }
 
 
@@ -325,10 +369,24 @@ public function downloadTechnicalSheet(Product $product)
 {
     $product->load(['certificates', 'legends', 'brand', 'subCategory']);
 
-    $pdf = PDF::loadView('pdf.technical_sheet', ['product' => $product]);
+    $productUrl = url('/products/' . $product->id);
+
+    // ✅ هنا بنحدد إن الفورمات PNG عشان يستخدم GD مش Imagick
+    $qrCode = base64_encode(
+        QrCode::format('svg')
+            ->size(200)
+            ->errorCorrection('H')
+            ->generate($productUrl)
+    );
+
+    $pdf = Pdf::loadView('pdf.technical_sheet', [
+        'product' => $product,
+        'qrCode'  => $qrCode,
+    ]);
 
     return $pdf->download("Technical_Data_Sheet_{$product->id}.pdf");
 }
+
 
     public function destroy(Product $product)
     {

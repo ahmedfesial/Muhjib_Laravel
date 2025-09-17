@@ -36,7 +36,7 @@ class UpdateProductRequest extends FormRequest
 
         'legends' => 'nullable|array',
         'legends.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
-                'images' => 'nullable|array',
+        'images' => 'nullable|array',
         'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
     }

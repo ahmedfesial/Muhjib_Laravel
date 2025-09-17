@@ -8,6 +8,7 @@ use App\Models\Catalog;
 use App\Models\Basket;
 use App\Models\Template;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -83,6 +84,8 @@ class CatalogController extends Controller
             'data' => $data
         ], 200);
     }
+
+
 public function generateCatalog(Request $request)
 {
     $request->validate([
@@ -103,8 +106,23 @@ public function generateCatalog(Request $request)
         ], 400);
     }
 
+    // توليد QR Codes لكل منتج (إذا لم تكن موجودة مسبقًا)
+    foreach ($basket->basketProducts as $item) {
+        $productUrl = url('/products/' . $item->product->id);
+        $qrFileName = 'qrcodes/qr_' . $item->product->id . '.svg';
+        $qrFullPath = storage_path('app/public/' . $qrFileName);
+
+        if (!file_exists($qrFullPath)) {
+            QrCode::format('svg')->size(200)->generate($productUrl, $qrFullPath);
+        }
+    }
+
+    // إعداد المنتجات مع مسار QR Code
     $templateProducts = $basket->basketProducts->map(function ($item) {
         $product = $item->product;
+        $qrFileName = 'qrcodes/qr_' . $product->id . '.svg'; // اسم ملف الـ QR
+        $qrPublicPath = storage_path('app/public/' . $qrFileName);
+
         return (object)[
             'name' => $product->name_en,
             'description' => $product->specification,
@@ -113,6 +131,7 @@ public function generateCatalog(Request $request)
             'quantity' => $item->quantity,
             'total' => $item->quantity * $item->price,
             'product' => $product,
+            'qrCodePath' => $qrPublicPath,
         ];
     });
 
@@ -130,7 +149,7 @@ public function generateCatalog(Request $request)
     $pdf = Pdf::loadView('templates.pdf', [
         'template' => $template,
         'user' => $user,
-        'client' => $client, // ← دي أهم حاجة
+        'client' => $client,
         'groupedProducts' => $groupedProducts,
     ])->setPaper('A4', 'portrait');
 
@@ -150,7 +169,7 @@ public function generateCatalog(Request $request)
 public function convertToCatalog(Request $request, Basket $basket)
 {
     $request->validate([
-        'template_id' => 'required|exists:templates,id',
+        'template_id' => 'nullable|exists:templates,id',
         'name' => 'required|string|max:255',
     ]);
 

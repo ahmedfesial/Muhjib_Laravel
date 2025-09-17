@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+@php use SimpleSoftwareIO\QrCode\Facades\QrCode; @endphp
 <html>
 <head>
     <title>Template PDF</title>
@@ -125,6 +126,7 @@
                             @php
                                 $relativePath = str_replace(url('/storage') . '/', '', $tp->image);
                                 $absolutePath = public_path('storage/' . $relativePath);
+                                $productUrl = url('/products/' . $tp->product->id);
                             @endphp
 
                             @if($tp->image && file_exists($absolutePath))
@@ -138,14 +140,28 @@
                             <p><strong>Price:</strong> {{ $tp->price }} EGP</p>
                             <p><strong>Quantity:</strong> {{ $tp->quantity ?? 1 }}</p>
                             <p><strong>Total:</strong> {{ number_format($tp->price * ($tp->quantity ?? 1), 2) }} EGP</p>
+
+                            <div style="margin-top: 10px;">
+                                @php
+                                    $qrPath = storage_path('app/public/qrcodes/qr_'.$tp->product->id.'.svg');
+                                @endphp
+                                @if(file_exists($qrPath))
+                                    <img src="file://{{ $qrPath }}" alt="QR Code" style="width: 100px; height: 100px;">
+                                @else
+                                    <p>No QR code available</p>
+                                @endif
+                                <p style="font-size: 10px;">Scan for more</p>
+                            </div>
+
                         </div>
                     @endforeach
                 </div>
+
             </div>
         </div>
     @endforeach
-@endforeach
 
+@endforeach
 
 {{-- ✅ صفحة بيانات العميل --}}
 @php
@@ -156,21 +172,19 @@
         <img src="{{ public_path('storage/' . $clientBg->path) }}" class="background-image">
     @endif
     <div class="content centered-content">
-        <!-- <h1>{{ $template->name }}</h1> -->
         @if($client && $client->logo)
             <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
         @endif
 
-
         <h2>Client Information</h2>
-        <p> {{ $client->name ?? 'N/A' }}</p>
-        <p> {{ $client->email ?? 'N/A' }}</p>
-        <p> {{ $client->phone ?? 'N/A' }}</p>
+        <p>{{ $client->name ?? 'N/A' }}</p>
+        <p>{{ $client->email ?? 'N/A' }}</p>
+        <p>{{ $client->phone ?? 'N/A' }}</p>
 
         <h2>Created By</h2>
-        <p> {{ $user->name }}</p>
+        <p>{{ $user->name }}</p>
         <p>{{ $user->email }}</p>
-        <p> {{ $template->created_at->format('d M Y') }}</p>
+        <p>{{ $template->created_at->format('d M Y') }}</p>
 
         <hr>
 
