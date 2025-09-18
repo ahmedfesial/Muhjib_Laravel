@@ -39,7 +39,7 @@ class Product extends Model
     ];
     protected $casts = [
     'main_colors' => 'array',
-        'images' => 'array',
+    'images' => 'array',
     'created_at' => 'datetime',
     'updated_at' => 'datetime',
      'counts' => 'array',
@@ -83,6 +83,11 @@ public function legends() {
 
 public function certificates() {
     return $this->belongsToMany(Certificate::class, 'certificate_product', 'product_id', 'certificate_id');
+}
+// داخل App\Models\Product
+public function newImages()
+{
+    return $this->images ?? [];
 }
 
 }

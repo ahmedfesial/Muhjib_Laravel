@@ -80,7 +80,7 @@ Route::group(['prefix'=>'products'],function(){
     Route::post('/create', [ProductController::class, 'store']);
     Route::get('/show/{product}', [ProductController::class, 'show']);
     // Route::post('/update/{product}', [ProductController::class, 'update']);
-    Route::put('/update/{product}', [ProductController::class, 'update']); // هذا سيعمل conflict
+    // Route::post('/update/{product}', [ProductController::class, 'update']);
 // Search and Filter Endpoints
     Route::get('/search', [ProductController::class, 'search']);
     Route::get('/filter', [ProductController::class, 'filter']);
@@ -89,6 +89,7 @@ Route::group(['prefix'=>'products'],function(){
 // Daata Sheet
     Route::get('/{product}/technical-datasheet', [ProductController::class, 'downloadTechnicalSheet']);
 });
+Route::post('/products/update-by-post/{product}', [ProductController::class, 'update']);
  Route::post('/import/products', [ProductImportController::class, 'import']);
     Route::get('/import/status/{id}', [ProductImportController::class, 'status'])->name('import.status');
     Route::get('/products/export', [ProductImportController::class, 'export']);

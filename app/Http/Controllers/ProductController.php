@@ -252,7 +252,7 @@ private function isImagePath($value)
     return is_string($value) && Str::endsWith($value, ['.jpg', '.jpeg', '.png', '.webp']);
 }
 
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(Request $request, Product $product)
     {
         $data = $request->validate([
         'name_en' => 'nullable|string|max:255',
@@ -290,27 +290,21 @@ private function isImagePath($value)
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
-    if ($request->has('images')) {
-        // احذف الصور القديمة
+   if ($request->has('images')) {
+        // حذف الصور القديمة من التخزين
         foreach ($product->images ?? [] as $oldImage) {
             $this->deleteFile($oldImage);
         }
 
         $newImages = [];
 
-        foreach ($request->images as $image) {
-            if ($image instanceof \Illuminate\Http\UploadedFile) {
-                // لو صورة جديدة مرفوعة
-                $newImages[] = $image->store('products/images', 'public');
-            } elseif (is_string($image)) {
-                // لو مسار صورة محفوظ بالفعل
-                $newImages[] = $image;
-            }
+        foreach ($request->file('images') as $imageFile) {
+            $newImages[] = $imageFile->store('products/images', 'public');
         }
 
         $data['images'] = $newImages;
     }
-    // dd($request->images);
+
     if (!empty($data['sku']) && Product::where('sku', $data['sku'])->where('id', '!=', $product->id)->exists()) {
         return response()->json(['message' => 'SKU already exists'], 422);
     }
@@ -355,12 +349,13 @@ if ($request->has('certificate_ids')) {
 if ($request->has('legend_ids')) {
     $product->legends()->sync($request->legend_ids);
 }
-dd($product);
+    $product = $product->fresh();
+// dd($product->images);
         // $updatedData=new ProductResource($product);
         return response()->json([
-            'message' => 'Product Updated Successfully',
-            'data' => $updatedData
-        ],200);
+        'message' => 'Product Updated Successfully',
+        'data' => new ProductResource($product),
+    ], 200);
 
     }
 
