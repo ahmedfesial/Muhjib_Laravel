@@ -8,21 +8,28 @@ use Carbon\Carbon;
 
 class ActivityController extends Controller
 {
-    public function index()
+public function index(Request $request)
     {
-        $logs = Activity::with('user')
-            ->latest()
-            ->take(50)
-            ->get()
-            ->map(function ($log) {
-                return [
-                    'type' => $log->event_type ?? 'Activity',
-                    'user' => $log->user->name ?? 'System',
-                    'description' => $log->description,
-                    'time' => Carbon::parse($log->created_at)->format('M d, g:i A'),
-                ];
-            });
+        $user = $request->user();
+
+        $query = Activity::with('user')->latest();
+
+        // لو اليوزر مش سوبر أدمن، نفلتر على الأنشطة الخاصة به فقط
+        if (!$user->hasRole('super_admin')) {
+            $query->where('user_id', $user->id);
+        }
+
+        $logs = $query->take(50)->get()->map(function ($log) {
+            return [
+                'type' => $log->event_type ?? 'Activity',
+                'user' => $log->user->name ?? 'System',
+                'description' => $log->description,
+                'time' => optional($log->created_at)->format('M d, g:i A'),
+            ];
+        });
 
         return response()->json($logs);
     }
+
+
 }

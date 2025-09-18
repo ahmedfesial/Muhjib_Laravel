@@ -36,8 +36,8 @@ use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ProductImportController;
 use App\Exports\ProductsExport;
 use Maatwebsite\Excel\Facades\Excel;
-        Route::post('/users/create', [UserController::class, 'create']);
-
+use App\Http\Controllers\AnalyticsController;
+Route::get('/analytics', [AnalyticsController::class, 'index']);
 Route::get('/activities', [ActivityController::class, 'index']);
 
 
@@ -70,6 +70,7 @@ Route::post('logout', [AuthController::class, 'logout']);
 Route::middleware(['auth:api', 'is_super_admin'])->group(function () {
         Route::delete('products/delete/{product}', [ProductController::class, 'destroy']);
         Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::post('/users/create', [UserController::class, 'create']);
 });
 Route::middleware(['auth:api', 'is_admin'])->group(function (){
     // view all users
