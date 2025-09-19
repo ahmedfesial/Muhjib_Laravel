@@ -23,6 +23,13 @@ class ProductPriceController extends Controller
             'data' => $data
         ],200);
     }
+    public function priceTypes()
+    {
+        return response()->json([
+            'message' => 'Price types retrieved',
+            'data' => ProductPrice::types(),
+        ], 200);
+    }
  public function import(Request $request)
 {
     $request->validate([

@@ -40,7 +40,12 @@ use App\Http\Controllers\AnalyticsController;
 Route::get('/analytics', [AnalyticsController::class, 'index']);
 Route::get('/activities', [ActivityController::class, 'index']);
 
-
+    Route::get('brands/', [BrandController::class, 'index']);
+    Route::get('main-categories/', [MainCategoriesController::class, 'index']);
+    Route::get('sub-categories/', [SubCategoriesController::class, 'index']);
+    Route::get('products/', [ProductController::class, 'index']);
+    Route::get('products/show/{product}', [ProductController::class, 'show']);
+Route::get('/price-types', [ProductPriceController::class, 'priceTypes']);
 Route::get('/lang', function () {
     return response()->json([
         'message' => __('messages.message'),
@@ -77,9 +82,7 @@ Route::middleware(['auth:api', 'is_admin'])->group(function (){
     Route::get('/users', [UserController::class, 'index']);
 // Products Routes
 Route::group(['prefix'=>'products'],function(){
-    Route::get('/', [ProductController::class, 'index']);
     Route::post('/create', [ProductController::class, 'store']);
-    Route::get('/show/{product}', [ProductController::class, 'show']);
     // Route::post('/update/{product}', [ProductController::class, 'update']);
     // Route::post('/update/{product}', [ProductController::class, 'update']);
 // Search and Filter Endpoints
@@ -183,7 +186,6 @@ Route::post('/price-change-requests/{id}/reject', [QuoteActionController::class,
 });
 // Brand routes
 Route::group(['prefix' => 'brands'], function () {
-    Route::get('/', [BrandController::class, 'index']);
     Route::post('/create', [BrandController::class, 'store']);
     Route::get('/{brand}', [BrandController::class, 'show']);
     Route::put('update/{brand}', [BrandController::class, 'update']);
@@ -192,9 +194,10 @@ Route::group(['prefix' => 'brands'], function () {
     // Route::post('/{brand}/togglestatus', [BrandController::class, 'togglestatus']);
 
 });
+
+
 // Main Categories Routes
 Route::group(['prefix' => 'main-categories'], function () {
-    Route::get('/', [MainCategoriesController::class, 'index']);
     Route::post('/create', [MainCategoriesController::class, 'store']);
     Route::get('show/{mainCategory}', [MainCategoriesController::class, 'show']);
     Route::post('update/{mainCategory}', [MainCategoriesController::class, 'update']);
@@ -202,7 +205,6 @@ Route::group(['prefix' => 'main-categories'], function () {
 });
 // Sub Categories Routes
 Route::group(['prefix' => 'sub-categories'], function () {
-    Route::get('/', [SubCategoriesController::class, 'index']);
     Route::post('/create', [SubCategoriesController::class, 'store']);
     Route::get('show/{subCategory}', [SubCategoriesController::class, 'show']);
     Route::post('update/{subCategory}', [SubCategoriesController::class, 'update']);
