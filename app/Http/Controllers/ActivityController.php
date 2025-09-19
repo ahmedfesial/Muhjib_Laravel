@@ -19,7 +19,7 @@ public function index(Request $request)
             $query->where('user_id', $user->id);
         }
 
-        $logs = $query->take(50)->get()->map(function ($log) {
+        $logs = $query->take(5)->get()->map(function ($log) {
             return [
                 'type' => $log->event_type ?? 'Activity',
                 'user' => $log->user->name ?? 'System',
