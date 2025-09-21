@@ -74,7 +74,7 @@ public function index(Request $request)
     public function store(Request $request)
 {
     $validated = $request->validate([
-        'name' => 'required|string',
+        'name' => 'nullable|string',
         'email' => 'nullable|email',
         'phone' => 'nullable|string',
         'company' => 'nullable|string',
