@@ -34,4 +34,21 @@ class NotificationsController extends Controller
         return response()->json(['message' => 'Notification marked as read']);
     }
 
+    public function approve(Notification $notification)
+{
+
+    $notification->update(['approval_status' => 'approved']);
+
+    return response()->json(['message' => 'Notification approved successfully']);
+}
+
+public function reject(Notification $notification)
+{
+
+    $notification->update(['approval_status' => 'rejected']);
+
+    return response()->json(['message' => 'Notification rejected successfully']);
+}
+
+
 }

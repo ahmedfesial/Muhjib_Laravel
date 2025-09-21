@@ -47,7 +47,11 @@ $data = QuoteRequestResource::collection(
 
     public function store(StoreQuoteRequestRequest $request)
 {
-   $data = $request->only(['client_id', 'assigned_to', 'status']);
+$data = $request->only(['client_id', 'status']);
+
+// تعيين تلقائي لنفس الشخص اللي اتعمله فورورد قبل كده
+$data['assigned_to'] = Auth::user()->last_assigned_to ?? null;
+
 $data['created_by'] = Auth::id();
 
 $quoteRequest = QuoteRequest::create($data);
@@ -161,4 +165,35 @@ public function rejectQuote($id)
         'data' => $data,
     ], 200);
 }
+
+public function forwardQuote(Request $request, $id)
+{
+    $request->validate([
+        'forward_to' => 'required|exists:users,id',
+    ]);
+
+    $quote = QuoteRequest::findOrFail($id);
+
+    $quote->update([
+        'assigned_to' => $request->forward_to,
+    ]);
+
+    // نحفظ آخر شخص السوبر أدمن وجه له كوتيشن
+    $user = Auth::user();
+
+    if (!$user) {
+        return response()->json(['message' => 'User not authenticated.'], 401);
+    }
+
+    if ($user instanceof \App\Models\User) {
+        $user->last_assigned_to = $request->forward_to;
+        if (!$user->save()) {
+        return response()->json(['message' => 'Failed to update user assignment.'], 500);
+        }
+    }
+
+    return response()->json(['message' => 'Quote forwarded successfully.']);
+}
+
+
 }

@@ -25,7 +25,7 @@ class User extends Authenticatable implements JWTSubject
     return [];
     }
 
-    protected $fillable = ['name', 'email', 'password', 'phone', 'role', 'image'];
+    protected $fillable = ['name', 'email', 'password', 'phone', 'role', 'image','last_assigned_to'];
     protected $hidden = ['password', 'remember_token'];
 
     public function clients() { return $this->hasMany(Client::class, 'created_by_user_id'); }

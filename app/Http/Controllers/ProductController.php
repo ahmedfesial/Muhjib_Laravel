@@ -17,7 +17,7 @@ use Mpdf\Mpdf;
 
 class ProductController extends Controller
 {
-    use AuthorizesRequests;
+    // use AuthorizesRequests;
     public function index(Request $request)
 {
     $query = Product::with(['certificates', 'legends', 'prices']);

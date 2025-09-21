@@ -158,6 +158,7 @@ Route::post('update/{productPrice}', [ProductPriceController::class, 'update']);
 Route::delete('delete/{productPrice}', [ProductPriceController::class, 'destroy']);
 Route::get('/export', [ProductPriceController::class, 'export']);
 Route::post('/import', [ProductPriceController::class, 'import']);
+Route::get('/types', [ProductPriceController::class, 'priceTypes']);
 });
 
 // Basket Product Routes
@@ -175,6 +176,7 @@ Route::group(['prefix' => 'quote-requests'], function () {
     Route::post('/approve/{id}', [QuoteRequestController::class, 'approveQuote']);
     Route::post('/reject/{id}', [QuoteRequestController::class, 'rejectQuote']);
 });
+Route::post('/quotes/{id}/forward', [QuoteRequestController::class, 'forwardQuote']);
 // Quote Action Routes
 Route::group(['prefix' => 'quote-actions'], function () {
     Route::get('/', [QuoteActionController::class, 'index']);
@@ -217,6 +219,9 @@ Route::group(['prefix' => 'notifications'], function () {
     Route::get('/', [NotificationsController::class, 'index']);
     Route::post('/create', [NotificationsController::class, 'store']);
     Route::post('{notification}/mark-as-read', [NotificationsController::class, 'markAsRead']);
+    Route::post('/{notification}/approve', [NotificationsController::class, 'approve']);
+    Route::post('/{notification}/reject', [NotificationsController::class, 'reject']);
+
 });
 // Price Logs Routes
 Route::group(['prefix'=>'price-upload-logs'],function(){
@@ -262,11 +267,11 @@ Route::get('/profile', [UserController::class, 'profile']);
 Route::get('/user/{user}/baskets', [BasketController::class, 'getUserBaskets']);
 Route::get('/user/catalogs/{catalog}', [CatalogController::class, 'show']);
 Route::get('user/quote-requests', [QuoteRequestController::class, 'userQuoteRequests']);
-    Route::get('products/', [ProductController::class, 'index']);
-    Route::get('products/show/{product}', [ProductController::class, 'show']);
-    Route::get('brands/', [BrandController::class, 'index']);
-    Route::get('main-categories/', [MainCategoriesController::class, 'index']);
-    Route::get('sub-categories/', [SubCategoriesController::class, 'index']);
+    // Route::get('products/', [ProductController::class, 'index']);
+    // Route::get('products/show/{product}', [ProductController::class, 'show']);
+    // Route::get('brands/', [BrandController::class, 'index']);
+    // Route::get('main-categories/', [MainCategoriesController::class, 'index']);
+    // Route::get('sub-categories/', [SubCategoriesController::class, 'index']);
 
 });
 

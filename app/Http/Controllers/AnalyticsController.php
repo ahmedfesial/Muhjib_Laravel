@@ -54,19 +54,20 @@ public function index()
         ->count();
 
     $mostPreferredCompanies = DB::table('clients')
-        ->select('company', DB::raw('COUNT(*) as count'))
-        ->whereNotNull('company')
-        ->groupBy('company')
-        ->orderByDesc('count')
-        ->take(5)
-        ->get()
-        ->map(function ($item) use ($totalCompanies) {
-            $item->percentage = $totalCompanies > 0
-                ? round(($item->count / $totalCompanies) * 100, 2)
-                : 0;
-            unset($item->count);
-            return $item;
-        });
+    ->select('name', DB::raw('COUNT(*) as count'))
+    ->whereNotNull('company')
+    ->groupBy('name')
+    ->orderByDesc('count')
+    ->take(5)
+    ->get()
+    ->map(function ($item) use ($totalCompanies) {
+        $item->percentage = $totalCompanies > 0
+            ? round(($item->count / $totalCompanies) * 100, 2)
+            : 0;
+        unset($item->count);
+        return $item;
+    });
+
 
     return response()->json([
         'mostUsedProducts' => $mostUsedProducts,

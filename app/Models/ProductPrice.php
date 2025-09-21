@@ -16,4 +16,13 @@ class ProductPrice extends Model
     public function product() {
         return $this->belongsTo(Product::class);
     }
+     public static function types()
+    {
+        return [
+            'A',
+            'B',
+            'C',
+            'D',
+        ];
+    }
 }
