@@ -13,16 +13,20 @@ use App\Events\BasketCreated;
 
 class BasketController extends Controller
 {
-    public function index(Request $request)
-    {
+   public function index(Request $request)
+{
+    $baskets = Basket::with(['client', 'creator', 'basketProducts.product'])
+        ->where('status', '!=', 'done') // 👈 استبعاد السلات المحوّلة
+        ->paginate(10);
 
-        $baskets = Basket::with(['client', 'creator', 'basketProducts.product'])->paginate(10);
-            $data = BasketResource::collection($baskets);
-            return response()->json([
-                'message' => 'Baskets Retrieved Successfully',
-                'data' => $data
-            ]);
-    }
+    $data = BasketResource::collection($baskets);
+
+    return response()->json([
+        'message' => 'Baskets Retrieved Successfully',
+        'data' => $data
+    ]);
+}
+
 
 public function filter(Request $request)
 {
@@ -109,10 +113,11 @@ public function filter(Request $request)
         return response()->json(['message' => 'Status updated', 'status' => $basket->status]);
     }
 
-    public function getUserBaskets(User $user)
+public function getUserBaskets(User $user)
 {
     $baskets = Basket::with(['client', 'products'])
         ->where('created_by', $user->id)
+        ->where('status', '!=', 'done') // 👈 هنا كمان
         ->paginate(10);
 
     $data = BasketResource::collection($baskets);
@@ -122,6 +127,7 @@ public function filter(Request $request)
         'data' => $data,
     ]);
 }
+
 
 }
 
