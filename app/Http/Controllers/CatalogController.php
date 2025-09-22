@@ -104,6 +104,10 @@ public function generateCatalog(Request $request)
             'message' => 'No client associated with this basket.'
         ], 400);
     }
+    $qrDir = storage_path('app/public/qrcodes');
+    if (!file_exists($qrDir)) {
+        mkdir($qrDir, 0755, true); // إنشاء المجلد مع الصلاحيات المناسبة
+    }
 
     // توليد QR Codes لكل منتج (إذا لم تكن موجودة مسبقًا)
     foreach ($basket->basketProducts as $item) {
