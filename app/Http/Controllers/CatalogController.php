@@ -17,7 +17,6 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 
 
-
 class CatalogController extends Controller
 {
     use AuthorizesRequests;
@@ -169,7 +168,6 @@ public function generateCatalog(Request $request)
 public function convertToCatalog(Request $request, Basket $basket)
 {
     $request->validate([
-        'template_id' => 'nullable|exists:templates,id',
         'name' => 'required|string|max:255',
     ]);
 
@@ -179,7 +177,13 @@ public function convertToCatalog(Request $request, Basket $basket)
         ], 400);
     }
 
-    $template = Template::with(['client', 'creator'])->findOrFail($request->template_id);
+    // لو عايز تستخدم تمبليت افتراضي
+    $template = Template::first(); // أو where('is_default', true) لو عندك حقل زي كده
+
+    if (!$template) {
+        return response()->json(['message' => 'No template found.'], 400);
+    }
+
     $user = Auth::user();
 
     $basketProducts = $basket->basketProducts()->with('product.subCategory')->get();
@@ -234,6 +238,8 @@ public function convertToCatalog(Request $request, Basket $basket)
         'pdf_url' => Storage::url($filePath),
     ], 201);
 }
+
+
 
 public function revertToBasket(Request $request, Catalog $catalog)
 {
