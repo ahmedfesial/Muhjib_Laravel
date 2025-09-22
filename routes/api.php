@@ -120,7 +120,7 @@ Route::group(['prefix' => 'clients'], function () {
     Route::get('/', [ClientsController::class, 'index']);
     Route::post('/create', [ClientsController::class, 'store']);
     Route::get('show/{client}', [ClientsController::class, 'show']);
-    Route::put('update/{client}', [ClientsController::class, 'update']);
+    Route::post('update/{client}', [ClientsController::class, 'update']);
     Route::delete('delete/{client}', [ClientsController::class, 'destroy']);
 
 Route::post('/{id}/approve', [ClientsController::class, 'approve']);

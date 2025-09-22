@@ -168,7 +168,7 @@ public function reject($id)
    public function update(UpdateClientsRequest $request, Client $client)
 {
     $validated = $request->validated();
-
+    // dd($validated);
     if ($request->hasFile('logo')) {
         $validated['logo'] = $request->file('logo')->store('clients/logos', 'public');
     }
