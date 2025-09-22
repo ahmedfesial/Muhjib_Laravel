@@ -19,4 +19,10 @@ class Notification extends Model
     public function receiver() {
         return $this->belongsTo(User::class, 'receiver_id');
     }
+public function client()
+{
+    return $this->belongsTo(Client::class, 'related_entity_id');
+}
+
+
 }

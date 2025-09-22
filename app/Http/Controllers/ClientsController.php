@@ -103,14 +103,15 @@ $status = $priceType !== 'A' ? 'pending' : 'approved';
         $superAdmins = User::where('role', 'super_admin')->get();
 
         foreach ($superAdmins as $admin) {
-            Notification::create([
+                Notification::create([
                 'type' => 'client_approval_request',
                 'sender_id' => Auth::id(),
                 'receiver_id' => $admin->id,
-                'content' => 'A new client with non-default price type was created. Please review.',
+                'content' => "Company \"{$client->company}\" with non-default price type was created. Please review.",
                 'related_entity_id' => $client->id,
             ]);
         }
+
     }
 
     return response()->json([
