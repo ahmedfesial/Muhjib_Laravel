@@ -45,6 +45,10 @@ Route::get('/activities', [ActivityController::class, 'index']);
     Route::get('sub-categories/', [SubCategoriesController::class, 'index']);
     Route::get('products/', [ProductController::class, 'index']);
     Route::get('products/show/{product}', [ProductController::class, 'show']);
+    Route::get('brands/{brand}', [BrandController::class, 'show']);
+    Route::get('main-categories/show/{mainCategory}', [MainCategoriesController::class, 'show']);
+    Route::get('sub-categories/show/{subCategory}', [SubCategoriesController::class, 'show']);
+
 Route::get('/price-types', [ProductPriceController::class, 'priceTypes']);
 Route::get('/lang', function () {
     return response()->json([
@@ -189,7 +193,6 @@ Route::post('/price-change-requests/{id}/reject', [QuoteActionController::class,
 // Brand routes
 Route::group(['prefix' => 'brands'], function () {
     Route::post('/create', [BrandController::class, 'store']);
-    Route::get('/{brand}', [BrandController::class, 'show']);
     Route::put('update/{brand}', [BrandController::class, 'update']);
     Route::delete('delete/{brand}', [BrandController::class, 'destroy']);
     Route::post('/{brand}/toggleStatus', [BrandController::class, 'toggleStatus']);
@@ -197,18 +200,15 @@ Route::group(['prefix' => 'brands'], function () {
 
 });
 
-
 // Main Categories Routes
 Route::group(['prefix' => 'main-categories'], function () {
     Route::post('/create', [MainCategoriesController::class, 'store']);
-    Route::get('show/{mainCategory}', [MainCategoriesController::class, 'show']);
     Route::post('update/{mainCategory}', [MainCategoriesController::class, 'update']);
     Route::delete('delete/{mainCategory}', [MainCategoriesController::class, 'destroy']);
 });
 // Sub Categories Routes
 Route::group(['prefix' => 'sub-categories'], function () {
     Route::post('/create', [SubCategoriesController::class, 'store']);
-    Route::get('show/{subCategory}', [SubCategoriesController::class, 'show']);
     Route::post('update/{subCategory}', [SubCategoriesController::class, 'update']);
     Route::delete('delete/{subCategory}', [SubCategoriesController::class, 'destroy']);
     Route::post('/{subCategory}/upload-images', [SubCategoriesController::class, 'updateSubCategoryImages']);
