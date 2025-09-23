@@ -71,6 +71,7 @@ public function store(StoreQuoteRequestRequest $request)
         $data['client_logo'] = $logoPath;
     }
 
+
     $data['assigned_to'] = Auth::user()->last_assigned_to ?? null;
     $data['created_by'] = Auth::id();
 
