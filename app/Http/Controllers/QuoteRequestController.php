@@ -47,16 +47,32 @@ $data = QuoteRequestResource::collection(
 
     public function store(StoreQuoteRequestRequest $request)
 {
-$data = $request->only(['client_id', 'status']);
+    $clientData = $request->input('client');
 
-// تعيين تلقائي لنفس الشخص اللي اتعمله فورورد قبل كده
-$data['assigned_to'] = Auth::user()->last_assigned_to ?? null;
+    // ابحث عن الكلاينت عن طريق الإيميل
+    $client = \App\Models\Client::where('email', $clientData['email'])->first();
 
-$data['created_by'] = Auth::id();
+    // لو مش موجود، أنشئ واحد جديد
+    if (!$client) {
+        $client = \App\Models\Client::create([
+            'name' => $clientData['name'] ?? null,
+            'email' => $clientData['email'],
+            'phone' => $clientData['phone'] ?? null,
+            'company' => $clientData['company'] ?? null,
+            'status' => 'approved', // أو pending حسب منطقك
+            'created_by_user_id' => Auth::id(),
+        ]);
+    }
 
-$quoteRequest = QuoteRequest::create($data);
+    // إنشاء الكوتيشن باستخدام ID الكلاينت اللي وجدناه أو أنشأناه
+    $quoteRequest = QuoteRequest::create([
+        'client_id' => $client->id,
+        'status' => $request->input('status', 'pending'),
+        'assigned_to' => Auth::user()->last_assigned_to ?? null,
+        'created_by' => Auth::id(),
+    ]);
 
-
+    // إضافة المنتجات
     if ($request->has('products')) {
         foreach ($request->input('products') as $product) {
             $quoteRequest->products()->attach($product['product_id'], [
@@ -66,13 +82,14 @@ $quoteRequest = QuoteRequest::create($data);
         }
     }
 
-$quoteRequest->load(['creator', 'products', 'client']);
+    $quoteRequest->load(['creator', 'products', 'client']);
 
     return response()->json([
         'message' => 'Quote Request Created Successfully',
         'data' => new QuoteRequestResource($quoteRequest),
     ], 201);
 }
+
 
 
     public function show($id)

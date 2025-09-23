@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Activity extends Model
 {
 protected $fillable = ['user_id', 'event_type', 'description'];
-public $timestamps = false;
+public $timestamps = true;
 protected $casts = [
     'created_at' => 'datetime',
     'updated_at' => 'datetime',

@@ -20,7 +20,7 @@ public function index()
         ->select('products.name_en as name', DB::raw('COUNT(basket_products.product_id) as count'))
         ->groupBy('products.id', 'products.name_en')
         ->orderByDesc('count')
-        ->take(5)
+        ->take(4)
         ->get()
         ->map(function ($item) use ($totalUsedProducts) {
             $item->percentage = $totalUsedProducts > 0
@@ -38,7 +38,7 @@ public function index()
         ->select('templates.name', DB::raw('COUNT(template_products.product_id) as count'))
         ->groupBy('templates.id', 'templates.name')
         ->orderByDesc('count')
-        ->take(5)
+        ->take(4)
         ->get()
         ->map(function ($item) use ($totalTemplateUsages) {
             $item->percentage = $totalTemplateUsages > 0
@@ -58,7 +58,7 @@ public function index()
     ->whereNotNull('company')
     ->groupBy('name')
     ->orderByDesc('count')
-    ->take(5)
+    ->take(4)
     ->get()
     ->map(function ($item) use ($totalCompanies) {
         $item->percentage = $totalCompanies > 0

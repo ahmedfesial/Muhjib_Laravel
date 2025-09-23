@@ -47,7 +47,7 @@ class ProductController extends Controller
         $query->where('sku', 'like', '%' . $request->sku . '%'); // فلترة بالـ SKU
     }
 
-    $products = $query->paginate(15);
+    $products = $query->paginate(50000);
     return response()->json([
         'message' => 'Products Retrieved Successfully',
         'data' => $products,
@@ -252,9 +252,9 @@ private function isImagePath($value)
     return is_string($value) && Str::endsWith($value, ['.jpg', '.jpeg', '.png', '.webp']);
 }
 
-    public function update(Request $request, Product $product)
-    {
-        $data = $request->validate([
+   public function update(Request $request, Product $product)
+{
+    $data = $request->validate([
         'name_en' => 'nullable|string|max:255',
         'name_ar' => 'nullable|string|max:255',
         'description_ar' => 'nullable|string',
@@ -268,7 +268,7 @@ private function isImagePath($value)
         'pdf_msds' => 'nullable|file|mimes:pdf|max:10000',
         'pdf_technical' => 'nullable|file|mimes:pdf|max:10000',
         'hs_code' => 'nullable|string|max:50',
-        'sku' => 'nullable|string|max:100|unique:products,sku',
+        'sku' => 'nullable|string|max:100',
         'pack_size' => 'nullable|string|max:100',
         'dimensions' => 'nullable|string|max:100',
         'capacity' => 'nullable|string|max:100',
@@ -283,21 +283,30 @@ private function isImagePath($value)
         'images' => 'nullable|array',
         'images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         'prices' => 'nullable|array',
-        'prices.*.price_type' => 'nullable|string',
-        'prices.*.value' => 'nullable|numeric',
+        'prices.*.price_type' => 'required_with:prices|string',
+        'prices.*.value' => 'required_with:prices|numeric',
     ]);
-        if ($request->hasFile('main_image')) {
+
+    // تحقق من SKU فقط لو اتغير
+    if (!empty($data['sku']) && $data['sku'] !== $product->sku) {
+        if (Product::where('sku', $data['sku'])->where('id', '!=', $product->id)->exists()) {
+            return response()->json(['message' => 'SKU already exists'], 422);
+        }
+    }
+
+    // تحديث main_image إن وجدت
+    if ($request->hasFile('main_image')) {
         $this->deleteFile($product->main_image);
         $data['main_image'] = $this->uploadFile($request, 'main_image', 'products/images');
     }
-   if ($request->has('images')) {
-        // حذف الصور القديمة من التخزين
+
+    // تحديث الصور إن وجدت
+    if ($request->hasFile('images')) {
         foreach ($product->images ?? [] as $oldImage) {
             $this->deleteFile($oldImage);
         }
 
         $newImages = [];
-
         foreach ($request->file('images') as $imageFile) {
             $newImages[] = $imageFile->store('products/images', 'public');
         }
@@ -305,33 +314,23 @@ private function isImagePath($value)
         $data['images'] = $newImages;
     }
 
-    if (!empty($data['sku']) && Product::where('sku', $data['sku'])->where('id', '!=', $product->id)->exists()) {
-        return response()->json(['message' => 'SKU already exists'], 422);
-    }
+    // إضافة main_colors جديدة على القديمة
+    if ($request->has('main_colors')) {
+        $existingColors = $product->main_colors ?? [];
+        $newColors = [];
 
-
-
-    $colors = [];
-
-if ($request->has('main_colors')) {
-    foreach ($product->main_colors ?? [] as $oldColor) {
-        if ($this->isImagePath($oldColor)) {
-            $this->deleteFile($oldColor);
+        foreach ($request->main_colors as $color) {
+            if ($color instanceof \Illuminate\Http\UploadedFile) {
+                $newColors[] = $color->store('products/colors', 'public');
+            } else {
+                $newColors[] = $color;
+            }
         }
+
+        $data['main_colors'] = array_merge($existingColors, $newColors);
     }
 
-    foreach ($request->main_colors as $color) {
-        if ($color instanceof \Illuminate\Http\UploadedFile) {
-            $colors[] = $color->store('products/colors', 'public');
-        } else {
-            $colors[] = $color;
-        }
-    }
-
-    $data['main_colors'] = $colors;
-}
-
-
+    // تحديث ملفات PDF إن وجدت
     foreach (['pdf_hs', 'pdf_msds', 'pdf_technical'] as $pdfField) {
         if ($request->hasFile($pdfField)) {
             $this->deleteFile($product->$pdfField);
@@ -339,25 +338,36 @@ if ($request->has('main_colors')) {
         }
     }
 
-    $certificates = [];
-    $legends = [];
-        $product->update($data);
-if ($request->has('certificate_ids')) {
-    $product->certificates()->sync($request->certificate_ids);
-}
+    // تحديث البيانات العامة
+    $product->update($data);
 
-if ($request->has('legend_ids')) {
-    $product->legends()->sync($request->legend_ids);
-}
-    $product = $product->fresh();
-// dd($product->images);
-        // $updatedData=new ProductResource($product);
-        return response()->json([
+    // تحديث الشهادات والليجندز
+    if ($request->has('certificate_ids')) {
+        $product->certificates()->sync($request->certificate_ids);
+    }
+
+    if ($request->has('legend_ids')) {
+        $product->legends()->sync($request->legend_ids);
+    }
+
+    // تحديث الأسعار فقط لو اتبعت في الريكوست
+    if ($request->has('prices')) {
+        // حذف الأسعار القديمة
+        $product->prices()->delete();
+
+        // إضافة الأسعار الجديدة
+        foreach ($request->prices as $price) {
+            $product->prices()->create($price);
+        }
+    }
+
+    $product = $product->fresh(['certificates', 'legends', 'prices']);
+
+    return response()->json([
         'message' => 'Product Updated Successfully',
         'data' => new ProductResource($product),
     ], 200);
-
-    }
+}
 
 
 public function downloadTechnicalSheet(Product $product)

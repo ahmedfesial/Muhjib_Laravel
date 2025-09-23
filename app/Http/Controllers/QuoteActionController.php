@@ -34,27 +34,29 @@ class QuoteActionController extends Controller
             'data' => $data
         ],201);
     }
-    
-    public function forwardToUser(Request $request)
+
+public function forwardToUser(Request $request, QuoteRequest $quote_request)
 {
-    // Super Admin can forward quote request to any user
     $request->validate([
-        'quote_request_id' => 'required|exists:quote_requests,id',
-        'forwarded_to_user_id' => 'required|exists:users,id'
+        'forwarded_to_user_id' => 'required|exists:users,id',
     ]);
 
-    $quoteRequest = QuoteRequest::find($request->quote_request_id);
+    // خلاص مش محتاج تبحث عنه، Laravel inject بيعملها
+    $quote_request->assigned_to = $request->forwarded_to_user_id;
+    $quote_request->save();
 
-    $quoteRequest->assigned_to = $request->forwarded_to_user_id;
-    $quoteRequest->save();
+    $quote_request->load(['creator', 'products']);
 
-    $quoteRequest->load(['creator', 'products']);
-    $data = new QuoteRequestResource($quoteRequest);
+    $forwardedToUser = User::find($request->forwarded_to_user_id);
+    $data = new QuoteRequestResource($quote_request);
+
     return response()->json([
         'message' => 'Quote Request forwarded successfully',
-        'data' => $data
-    ], 200);
+        'forwarded_to' => $forwardedToUser->name,
+        'data' => $data,
+    ]);
 }
+
 
 
 
