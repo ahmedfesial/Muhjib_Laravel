@@ -47,31 +47,27 @@ $data = QuoteRequestResource::collection(
 
    public function store(StoreQuoteRequestRequest $request)
 {
-    $clientData = $request->input('client');
+    $clientData = $request->only(['name', 'email', 'phone', 'company']);
 
-    // تحقق من أن client موجودة ومصنفة كمصفوفة وتحتوي على email
-    if (!is_array($clientData) || !isset($clientData['email'])) {
+    if (empty($clientData['email'])) {
         return response()->json([
-            'message' => 'Client information is missing or invalid.',
+            'message' => 'Client email is required.',
         ], 422);
     }
 
-    // ابحث عن العميل باستخدام البريد الإلكتروني (حساس للإيميل فقط)
     $client = \App\Models\Client::where('email', $clientData['email'])->first();
 
-    // لو العميل مش موجود، أنشئ واحد جديد
     if (!$client) {
         $client = \App\Models\Client::create([
             'name' => $clientData['name'] ?? null,
             'email' => $clientData['email'],
             'phone' => $clientData['phone'] ?? null,
             'company' => $clientData['company'] ?? null,
-            'status' => 'pending',
+            'status' => 'approved',
             'created_by_user_id' => Auth::id(),
         ]);
     }
 
-    // كده سواء العميل كان موجود أو اتأنشأ، نقدر نربطه بالكوتيشن
     $quoteRequest = QuoteRequest::create([
         'client_id' => $client->id,
         'status' => $request->input('status', 'pending'),
@@ -79,7 +75,6 @@ $data = QuoteRequestResource::collection(
         'created_by' => Auth::id(),
     ]);
 
-    // ربط المنتجات
     if ($request->has('products') && is_array($request->input('products'))) {
         foreach ($request->input('products') as $product) {
             if (isset($product['product_id'], $product['quantity'])) {
@@ -98,6 +93,7 @@ $data = QuoteRequestResource::collection(
         'data' => new QuoteRequestResource($quoteRequest),
     ], 201);
 }
+
 
 
 
