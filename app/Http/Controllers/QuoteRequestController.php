@@ -49,22 +49,29 @@ $data = QuoteRequestResource::collection(
 {
     $clientData = $request->input('client');
 
-    // ابحث عن الكلاينت عن طريق الإيميل
+    // تحقق من أن client موجودة ومصنفة كمصفوفة وتحتوي على email
+    if (!is_array($clientData) || !isset($clientData['email'])) {
+        return response()->json([
+            'message' => 'Client information is missing or invalid.',
+        ], 422);
+    }
+
+    // ابحث عن العميل باستخدام البريد الإلكتروني
     $client = \App\Models\Client::where('email', $clientData['email'])->first();
 
-    // لو مش موجود، أنشئ واحد جديد
+    // إذا لم يكن موجودًا، أنشئ عميلًا جديدًا
     if (!$client) {
         $client = \App\Models\Client::create([
             'name' => $clientData['name'] ?? null,
             'email' => $clientData['email'],
             'phone' => $clientData['phone'] ?? null,
             'company' => $clientData['company'] ?? null,
-            'status' => 'approved', // أو pending حسب منطقك
+            'status' => 'pending',
             'created_by_user_id' => Auth::id(),
         ]);
     }
 
-    // إنشاء الكوتيشن باستخدام ID الكلاينت اللي وجدناه أو أنشأناه
+    // إنشاء الطلب وربطه بالعميل
     $quoteRequest = QuoteRequest::create([
         'client_id' => $client->id,
         'status' => $request->input('status', 'pending'),
@@ -72,16 +79,19 @@ $data = QuoteRequestResource::collection(
         'created_by' => Auth::id(),
     ]);
 
-    // إضافة المنتجات
-    if ($request->has('products')) {
+    // ربط المنتجات بالطلب
+    if ($request->has('products') && is_array($request->input('products'))) {
         foreach ($request->input('products') as $product) {
-            $quoteRequest->products()->attach($product['product_id'], [
-                'quantity' => $product['quantity'],
-                'price' => $product['price'] ?? 0,
-            ]);
+            if (isset($product['product_id'], $product['quantity'])) {
+                $quoteRequest->products()->attach($product['product_id'], [
+                    'quantity' => $product['quantity'],
+                    'price' => $product['price'] ?? 0,
+                ]);
+            }
         }
     }
 
+    // تحميل العلاقات المرتبطة
     $quoteRequest->load(['creator', 'products', 'client']);
 
     return response()->json([
@@ -89,6 +99,7 @@ $data = QuoteRequestResource::collection(
         'data' => new QuoteRequestResource($quoteRequest),
     ], 201);
 }
+
 
 
 
