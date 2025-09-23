@@ -22,6 +22,7 @@ protected $fillable = [
     'client_name',
     'client_phone',
     'client_company',
+    'client_logo',
 ];
 
     public function client() {
