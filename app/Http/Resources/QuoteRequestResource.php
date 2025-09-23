@@ -7,33 +7,35 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class QuoteRequestResource extends JsonResource
 {
-    public function toArray(Request $request): array
-    {
-        return [
-            'id' => $this->id,
-            'client' => new ClientResource($this->whenLoaded('client')),
-            'assigned_to' => $this->assigned_to,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
-            'creator_name' => $this->creator?->name,
-
-            'creator_products' => $this->creator?->products->map(function ($product) {
+    public function toArray($request)
+{
     return [
-        'id' => $product->id,
-        'name' => $product->name,
-        'main_image' => $product->main_image,
-        'specification' => $product->specification,
-        'price' => $product->price,
+        'id' => $this->id,
+        'client' => $this->client
+            ? new ClientResource($this->client)
+            : [
+                'id' => null,
+                'name' => $this->client_name ?? 'Unknown',
+                'email' => $this->client_email,
+                'phone' => $this->client_phone,
+                'company' => $this->client_company,
+                'status' => 'not_registered',
+            ],
+        'assigned_to' => $this->assigned_to,
+        'status' => $this->status,
+        'created_at' => $this->created_at,
+        'creator_name' => $this->creator?->name,
+        'creator_products' => [], // لو عندك logic تاني هنا ضيفه
+        'products' => $this->whenLoaded('products', function () {
+            return $this->products->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'name_en' => $product->name_en,
+                    'quantity' => $product->pivot->quantity,
+                    'price' => number_format($product->pivot->price, 2),
+                ];
+            });
+        }),
     ];
-}),
-'products' => $this->products->map(function ($product) {
-    return [
-        'id' => $product->id,
-        'name_en' => $product->name_en,
-        'quantity' => $product->pivot->quantity,
-        'price' => $product->pivot->price,
-    ];
-}),
-        ];
-    }
+}
 }

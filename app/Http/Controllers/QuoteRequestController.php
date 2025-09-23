@@ -9,7 +9,8 @@ use Illuminate\Http\Request;
 use App\Policies\QuoteRequestPolicy;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Client;
+use App\Models\User;
 class QuoteRequestController extends Controller
 {
     use AuthorizesRequests;
@@ -45,44 +46,36 @@ $data = QuoteRequestResource::collection(
     return $query->latest(); // latest by created_at
 }
 
-  public function store(StoreQuoteRequestRequest $request)
+public function store(StoreQuoteRequestRequest $request)
 {
-    $clientData = $request->input('client', []);
+    $email = $request->input('client_email');
 
-    if (empty($clientData['email'])) {
-        return response()->json([
-            'message' => 'Client email is required.',
-        ], 422);
-    }
+    // حاول تجيب العميل
+    $client = Client::where('email', $email)->first();
+    $clientId = $client?->id;
 
-    $client = \App\Models\Client::where('email', $clientData['email'])->first();
+    $data = $request->only(['status']);
 
-    if (!$client) {
-        $client = \App\Models\Client::create([
-            'name' => $clientData['name'] ?? null,
-            'email' => $clientData['email'],
-            'phone' => $clientData['phone'] ?? null,
-            'company' => $clientData['company'] ?? null,
-            'status' => 'approved',
-            'created_by_user_id' => Auth::id(),
-        ]);
-    }
+    // استخدم client_id لو موجود
+    $data['client_id'] = $clientId;
 
-    $quoteRequest = QuoteRequest::create([
-        'client_id' => $client->id,
-        'status' => $request->input('status', 'pending'),
-        'assigned_to' => Auth::user()->last_assigned_to ?? null,
-        'created_by' => Auth::id(),
-    ]);
+    // خزن بيانات العميل المؤقتة
+    $data['client_email'] = $email;
+    $data['client_name'] = $request->input('client_name', 'Unknown');
+    $data['client_phone'] = $request->input('client_phone');
+    $data['client_company'] = $request->input('client_company');
 
-    if ($request->has('products') && is_array($request->input('products'))) {
+    $data['assigned_to'] = Auth::user()->last_assigned_to ?? null;
+    $data['created_by'] = Auth::id();
+
+    $quoteRequest = QuoteRequest::create($data);
+
+    if ($request->has('products')) {
         foreach ($request->input('products') as $product) {
-            if (isset($product['product_id'], $product['quantity'])) {
-                $quoteRequest->products()->attach($product['product_id'], [
-                    'quantity' => $product['quantity'],
-                    'price' => $product['price'] ?? 0,
-                ]);
-            }
+            $quoteRequest->products()->attach($product['product_id'], [
+                'quantity' => $product['quantity'],
+                'price' => $product['price'] ?? 0,
+            ]);
         }
     }
 
@@ -93,12 +86,6 @@ $data = QuoteRequestResource::collection(
         'data' => new QuoteRequestResource($quoteRequest),
     ], 201);
 }
-
-
-
-
-
-
 
     public function show($id)
     {
@@ -134,16 +121,30 @@ public function approveQuote($id)
 
     $quote->update(['status' => 'approved']);
 
-    if ($quote->client) {
+    // تسجيل العميل لو مش موجود
+    if (!$quote->client) {
+        $client = Client::create([
+            'email' => $quote->client_email,
+            'name' => $quote->client_name ?? 'Unknown',
+            'phone' => $quote->client_phone,
+            'company' => $quote->client_company,
+            'status' => 'approved',
+            'created_by_user_id' => $quote->created_by,
+        ]);
+
+        // اربط العميل بالكوتيشن
+        $quote->update(['client_id' => $client->id]);
+    } else {
         $quote->client->update(['status' => 'approved']);
     }
 
+    // أنشئ الباسكت
     $basket = \App\Models\Basket::create([
         'name' => 'Basket for Quote ' . $quote->id,
         'client_id' => $quote->client_id,
         'status' => 'pending',
         'created_by' => Auth::id(),
-        'include_price_flag' => true, // حسب تصميمك
+        'include_price_flag' => true,
     ]);
 
     foreach ($quote->products as $product) {
@@ -157,10 +158,11 @@ public function approveQuote($id)
     $basket->load(['client', 'creator', 'basketProducts.product']);
 
     return response()->json([
-        'message' => 'Quote approved, client activated, and basket created.',
+        'message' => 'Quote approved, client created, and basket generated.',
         'basket' => new \App\Http\Resources\BasketResource($basket),
     ]);
 }
+
 
 public function rejectQuote($id)
 {
@@ -197,28 +199,41 @@ public function forwardQuote(Request $request, $id)
         'forward_to' => 'required|exists:users,id',
     ]);
 
-    $quote = QuoteRequest::findOrFail($id);
+    $currentUserId = Auth::id();
+    $forwardToUserId = (int) $request->forward_to;
 
-    $quote->update([
-        'assigned_to' => $request->forward_to,
+    // منع التوجيه لنفس الشخص
+    if ($forwardToUserId === $currentUserId) {
+        return response()->json([
+            'message' => 'You cannot forward a quote request to yourself.',
+        ], 400);
+    }
+
+    // جلب الكوتيشن
+    $quoteRequest = QuoteRequest::findOrFail($id);
+
+    // منع التوجيه لنفس الشخص لو هو أصلاً مستلمها
+    if ($quoteRequest->assigned_to === $forwardToUserId) {
+        return response()->json([
+            'message' => 'Quote request is already assigned to this user.',
+        ], 400);
+    }
+
+    // تنفيذ التوجيه
+    $quoteRequest->assigned_to = $forwardToUserId;
+    $quoteRequest->save();
+
+    $quoteRequest->load(['creator', 'products']);
+    $forwardedToUser = User::find($forwardToUserId);
+    $data = new QuoteRequestResource($quoteRequest);
+
+    return response()->json([
+        'message' => 'Quote Request forwarded successfully',
+        'forwarded_to' => $forwardedToUser->name,
+        'data' => $data,
     ]);
-
-    // نحفظ آخر شخص السوبر أدمن وجه له كوتيشن
-    $user = Auth::user();
-
-    if (!$user) {
-        return response()->json(['message' => 'User not authenticated.'], 401);
-    }
-
-    if ($user instanceof \App\Models\User) {
-        $user->last_assigned_to = $request->forward_to;
-        if (!$user->save()) {
-        return response()->json(['message' => 'Failed to update user assignment.'], 500);
-        }
-    }
-
-    return response()->json(['message' => 'Quote forwarded successfully.']);
 }
+
 
 
 }

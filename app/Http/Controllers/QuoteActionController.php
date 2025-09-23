@@ -41,13 +41,29 @@ public function forwardToUser(Request $request, QuoteRequest $quote_request)
         'forwarded_to_user_id' => 'required|exists:users,id',
     ]);
 
-    // خلاص مش محتاج تبحث عنه، Laravel inject بيعملها
-    $quote_request->assigned_to = $request->forwarded_to_user_id;
+    $currentUserId = Auth::id();
+    $forwardToUserId = (int) $request->forwarded_to_user_id;
+
+    // ✅ منع التوجيه لنفسك
+    if ($forwardToUserId === $currentUserId) {
+        return response()->json([
+            'message' => 'You cannot forward a quote request to yourself.',
+        ], 400);
+    }
+
+    // ✅ منع التوجيه لنفس الشخص اللي هو موجه له بالفعل
+    if ($quote_request->assigned_to === $forwardToUserId) {
+        return response()->json([
+            'message' => 'Quote request is already assigned to this user.',
+        ], 400);
+    }
+
+    // ✅ تم التحقق، نحدث البيانات
+    $quote_request->assigned_to = $forwardToUserId;
     $quote_request->save();
 
     $quote_request->load(['creator', 'products']);
-
-    $forwardedToUser = User::find($request->forwarded_to_user_id);
+    $forwardedToUser = User::find($forwardToUserId);
     $data = new QuoteRequestResource($quote_request);
 
     return response()->json([
@@ -56,7 +72,6 @@ public function forwardToUser(Request $request, QuoteRequest $quote_request)
         'data' => $data,
     ]);
 }
-
 
 
 

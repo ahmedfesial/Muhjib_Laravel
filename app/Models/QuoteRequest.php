@@ -13,7 +13,16 @@ class QuoteRequest extends Model
     use HasFactory;
     protected $table='quote_requests';
 
-protected $fillable = ['client_id', 'assigned_to', 'status', 'created_by'];
+protected $fillable = [
+    'client_id',
+    'status',
+    'assigned_to',
+    'created_by',
+    'client_email',
+    'client_name',
+    'client_phone',
+    'client_company',
+];
 
     public function client() {
         return $this->belongsTo(Client::class);
