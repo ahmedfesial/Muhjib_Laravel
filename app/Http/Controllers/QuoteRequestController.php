@@ -45,7 +45,7 @@ $data = QuoteRequestResource::collection(
     return $query->latest(); // latest by created_at
 }
 
-    public function store(StoreQuoteRequestRequest $request)
+   public function store(StoreQuoteRequestRequest $request)
 {
     $clientData = $request->input('client');
 
@@ -56,10 +56,10 @@ $data = QuoteRequestResource::collection(
         ], 422);
     }
 
-    // ابحث عن العميل باستخدام البريد الإلكتروني
+    // ابحث عن العميل باستخدام البريد الإلكتروني (حساس للإيميل فقط)
     $client = \App\Models\Client::where('email', $clientData['email'])->first();
 
-    // إذا لم يكن موجودًا، أنشئ عميلًا جديدًا
+    // لو العميل مش موجود، أنشئ واحد جديد
     if (!$client) {
         $client = \App\Models\Client::create([
             'name' => $clientData['name'] ?? null,
@@ -71,7 +71,7 @@ $data = QuoteRequestResource::collection(
         ]);
     }
 
-    // إنشاء الطلب وربطه بالعميل
+    // كده سواء العميل كان موجود أو اتأنشأ، نقدر نربطه بالكوتيشن
     $quoteRequest = QuoteRequest::create([
         'client_id' => $client->id,
         'status' => $request->input('status', 'pending'),
@@ -79,7 +79,7 @@ $data = QuoteRequestResource::collection(
         'created_by' => Auth::id(),
     ]);
 
-    // ربط المنتجات بالطلب
+    // ربط المنتجات
     if ($request->has('products') && is_array($request->input('products'))) {
         foreach ($request->input('products') as $product) {
             if (isset($product['product_id'], $product['quantity'])) {
@@ -91,7 +91,6 @@ $data = QuoteRequestResource::collection(
         }
     }
 
-    // تحميل العلاقات المرتبطة
     $quoteRequest->load(['creator', 'products', 'client']);
 
     return response()->json([
@@ -99,6 +98,7 @@ $data = QuoteRequestResource::collection(
         'data' => new QuoteRequestResource($quoteRequest),
     ], 201);
 }
+
 
 
 

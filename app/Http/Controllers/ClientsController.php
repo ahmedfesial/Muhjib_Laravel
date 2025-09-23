@@ -75,7 +75,7 @@ public function index(Request $request)
 {
     $validated = $request->validate([
         'name' => 'nullable|string',
-        'email' => 'nullable|email',
+        'email' => 'nullable|email|unique:clients,email',
         'phone' => 'nullable|string',
         'company' => 'nullable|string',
         'default_price_type' => 'nullable|in:A,B,C,D',
