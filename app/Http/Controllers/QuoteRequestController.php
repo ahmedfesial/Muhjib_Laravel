@@ -65,6 +65,12 @@ public function store(StoreQuoteRequestRequest $request)
     $data['client_phone'] = $request->input('client_phone');
     $data['client_company'] = $request->input('client_company');
 
+    // ✅ لو فيه لوجو، خزنه
+    if ($request->hasFile('client_logo')) {
+        $logoPath = $request->file('client_logo')->store('client_logos', 'public');
+        $data['client_logo'] = $logoPath;
+    }
+
     $data['assigned_to'] = Auth::user()->last_assigned_to ?? null;
     $data['created_by'] = Auth::id();
 

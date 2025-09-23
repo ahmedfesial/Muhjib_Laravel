@@ -19,6 +19,7 @@ class QuoteRequestResource extends JsonResource
                 'email' => $this->client_email,
                 'phone' => $this->client_phone,
                 'company' => $this->client_company,
+                'logo' => $this->client_logo ? asset('storage/' . $this->client_logo) : null,
                 'status' => 'not_registered',
             ],
         'assigned_to' => $this->assigned_to,
