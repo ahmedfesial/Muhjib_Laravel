@@ -16,7 +16,7 @@ class StoreQuoteRequestRequest extends FormRequest
         return [
         'client_id' => ['nullable', 'exists:clients,id'],
         'assigned_to' => ['nullable', 'exists:users,id'],
-        'status' => ['required', 'in:pending,accepted,rejected,transferred'],
+        'status' => 'nullable|in:pending,approved,rejected',
         'products' => ['nullable', 'array', 'min:1'],
         'products.*.name_en' => ['required', 'string', 'max:255'],
         'products.*.product_id' => ['required', 'exists:products,id'],

@@ -45,9 +45,9 @@ $data = QuoteRequestResource::collection(
     return $query->latest(); // latest by created_at
 }
 
-   public function store(StoreQuoteRequestRequest $request)
+  public function store(StoreQuoteRequestRequest $request)
 {
-    $clientData = $request->only(['name', 'email', 'phone', 'company']);
+    $clientData = $request->input('client', []);
 
     if (empty($clientData['email'])) {
         return response()->json([
@@ -93,6 +93,7 @@ $data = QuoteRequestResource::collection(
         'data' => new QuoteRequestResource($quoteRequest),
     ], 201);
 }
+
 
 
 
