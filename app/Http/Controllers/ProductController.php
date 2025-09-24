@@ -351,8 +351,8 @@ private function isImagePath($value)
     }
 
     // تحديث الأسعار فقط لو اتبعت في الريكوست
-    if ($request->has('prices')) {
-        // حذف الأسعار القديمة
+    if ($request->has('prices') && is_array($request->prices)) {
+    // حذف الأسعار القديمة
         $product->prices()->delete();
 
         // إضافة الأسعار الجديدة
@@ -361,11 +361,12 @@ private function isImagePath($value)
         }
     }
 
-    $product = $product->fresh(['certificates', 'legends', 'prices']);
+
+    $product = $product->fresh(['certificates', 'legends', 'prices','brand', 'subCategory']);
 
     return response()->json([
         'message' => 'Product Updated Successfully',
-        'data' => new ProductResource($product),
+        'data' => $product,
     ], 200);
 }
 

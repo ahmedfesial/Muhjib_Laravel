@@ -37,14 +37,32 @@ class Product extends Model
         'quantity',
         'images',
     ];
-    protected $casts = [
+   protected $casts = [
     'main_colors' => 'array',
     'images' => 'array',
-    'created_at' => 'datetime',
-    'updated_at' => 'datetime',
-     'counts' => 'array',
+    'counts' => 'array',
     'errors' => 'array',
 ];
+
+public function getMainColorsAttribute($value)
+{
+    return $value ? json_decode($value, true) : [];
+}
+
+public function getImagesAttribute($value)
+{
+    return $value ? json_decode($value, true) : [];
+}
+
+public function getCountsAttribute($value)
+{
+    return $value ? json_decode($value, true) : [];
+}
+
+public function getErrorsAttribute($value)
+{
+    return $value ? json_decode($value, true) : [];
+}
 
 
     public function brand() {
