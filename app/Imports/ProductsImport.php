@@ -9,15 +9,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Concerns\Importable;
 
-class ProductsImport implements 
-    ToCollection, 
-    WithHeadingRow, 
-    WithChunkReading, 
-    ShouldQueue // ✅ دي لازم تكون من Illuminate\Contracts\Queue
+class ProductsImport implements
+    ToCollection,
+    WithHeadingRow,
+    WithChunkReading,
+    ShouldQueue,
+    WithEvents
 {
-    use Importable; // ✅ ممكن تحتاجه لو هتشغّل Excel::queueImport
+    use Importable;
 
     protected $importLog;
 
@@ -32,12 +35,13 @@ class ProductsImport implements
 
     public function collection(Collection $rows)
     {
-        $this->importLog->update(['status' => 'running']);
-
         foreach ($rows as $index => $row) {
             try {
                 if (empty($row['sku'])) {
-                    $this->errors[] = ['row' => $index + 2, 'error' => 'SKU is required'];
+                    $this->errors[] = [
+                        'row' => $index + 2,
+                        'error' => 'SKU is required'
+                    ];
                     continue;
                 }
 
@@ -76,15 +80,28 @@ class ProductsImport implements
                     $this->updatedCount++;
                 }
             } catch (\Exception $e) {
-                $this->errors[] = ['row' => $index + 2, 'error' => $e->getMessage()];
+                $this->errors[] = [
+                    'row' => $index + 2,
+                    'error' => $e->getMessage()
+                ];
             }
         }
+    }
 
-        $this->importLog->update([
-            'status' => 'done',
-            'counts' => ['created' => $this->createdCount, 'updated' => $this->updatedCount],
-            'errors' => $this->errors,
-        ]);
+    public function registerEvents(): array
+    {
+        return [
+            AfterImport::class => function (AfterImport $event) {
+                $this->importLog->update([
+                    'status' => 'done',
+                    'counts' => [
+                        'created' => $this->createdCount,
+                        'updated' => $this->updatedCount,
+                    ],
+                    'errors' => $this->errors,
+                ]);
+            },
+        ];
     }
 
     public function chunkSize(): int

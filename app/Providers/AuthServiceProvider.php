@@ -24,23 +24,7 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        ContactMessage::class => ContactMessagePolicy::class,
-        Brand::class => BrandPolicy::class,
-        MainCategories::class => MainCategoriesPolicy::class,
-        SubCategories::class => SubCategoriesPolicy::class,
-        \App\Models\Basket::class => \App\Policies\BasketsPolicy::class,
-        \App\Models\BasketProduct::class => \App\Policies\BasketProductsPolicy::class,
-        \App\Models\Product::class => \App\Policies\ProductPolicy::class,
-        \App\Models\ProductPrice::class => \App\Policies\ProductPricePolicy::class,
-        \App\Models\Catalog::class => \App\Policies\CatalogPolicy::class,
-        \App\Models\Notification::class => \App\Policies\NotificationsPolicy::class,
-        \App\Models\Client::class => \App\Policies\ClientsPolicy::class,
-        \App\Models\QuoteRequest::class => \App\Policies\QuoteRequestPolicy::class,
-        \App\Models\QuoteAction::class => \App\Policies\QuoteActionPolicy::class,
-    \App\Models\PriceUploadLog::class => \App\Policies\PriceUploadLogPolicy::class,
-    \App\Models\Template::class => \App\Policies\TempletesPolicy::class,
-        User::class => \App\Policies\UserPolicy::class,
-        
+
 
     ];
 
@@ -50,7 +34,7 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
-        
+
         // Optional: define global gates here
         // Gate::define('admin-only', fn($user) => $user->role === 'admin');
     }

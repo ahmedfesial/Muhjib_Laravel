@@ -27,7 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_user' => \App\Http\Middleware\IsUserMiddleware::class,
             'set_api_locale' => \App\Http\Middleware\SetApiLocale::class,
             'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
-            
+            'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+
         ]);
 
         //

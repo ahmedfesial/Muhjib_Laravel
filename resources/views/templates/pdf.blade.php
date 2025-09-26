@@ -12,7 +12,7 @@
         .page {
             page-break-after: always;
             position: relative;
-            padding: 20px;
+            padding: 0px;
             height: 100vh;
             overflow: hidden;
         }
@@ -114,8 +114,8 @@
             @endif
 
             <div class="content">
-                @if($template->logo)
-                    <img src="{{ public_path('storage/' . $template->logo) }}" class="logo-top-right">
+                @if($client && $client->logo)
+                    <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
                 @endif
 
                 <h2>{{ $subCategory->name ?? 'Other Products' }}</h2>

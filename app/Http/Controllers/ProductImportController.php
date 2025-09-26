@@ -38,7 +38,7 @@ public function import(Request $request)
     // ✅ Queue the import job
     Excel::queueImport(new ProductsImport($importLog), $file)
         ->allOnQueue('imports'); // optional: specify queue name
-
+    // dd($importLog);
     return response()->json([
         'message' => '📥 Import started successfully.',
         'import_log_id' => $importLog->id,
