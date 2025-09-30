@@ -31,22 +31,24 @@ public function index()
         });
 
     // 2. Most Preferred Templates
-    $totalTemplateUsages = DB::table('template_products')->count();
+    $totalTemplates = \App\Models\Template::count();
 
-    $mostPreferredTemplates = DB::table('template_products')
-        ->join('templates', 'templates.id', '=', 'template_products.template_id')
-        ->select('templates.name', DB::raw('COUNT(template_products.product_id) as count'))
-        ->groupBy('templates.id', 'templates.name')
-        ->orderByDesc('count')
-        ->take(4)
-        ->get()
-        ->map(function ($item) use ($totalTemplateUsages) {
-            $item->percentage = $totalTemplateUsages > 0
-                ? round(($item->count / $totalTemplateUsages) * 100, 2)
-                : 0;
-            unset($item->count);
-            return $item;
-        });
+$mostPreferredTemplates = \App\Models\Template::query()
+    ->select('name', DB::raw('COUNT(*) as count'))
+    ->whereNull('deleted_at')
+    ->groupBy('name')
+    ->orderByDesc('count')
+    ->take(4)
+    ->get()
+    ->map(function ($item) use ($totalTemplates) {
+        $item->percentage = $totalTemplates > 0
+            ? round(($item->count / $totalTemplates) * 100, 2)
+            : 0;
+        unset($item->count);
+        return $item;
+    });
+
+// dd($mostPreferredTemplates);
 
     // 3. Most Preferred Companies
     $totalCompanies = DB::table('clients')

@@ -45,5 +45,9 @@ public function endCoverImages()
 {
     return $this->coverImages()->where('position', 'end');
 }
+public function template()
+{
+    return $this->belongsTo(Template::class);
+}
 
 }
