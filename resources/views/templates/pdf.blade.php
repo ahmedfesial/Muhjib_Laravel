@@ -51,7 +51,6 @@
             justify-content: center;
             padding: 10px;
         }
-
         .product {
             display: inline-block;
             vertical-align: top;
@@ -84,27 +83,41 @@
     @endif
 @endforeach
 
-{{-- ✅ المنتجات حسب الـ SubCategory --}}
+{{-- ✅ المنتجات حسب الـ Brand --}}
 @php
     $productsBg = $template->coverImages->where('background_position', 'products')->first();
 @endphp
 
-@foreach($groupedProducts as $subCategoryId => $products)
+@foreach($groupedProducts as $brandId => $products)
     @php
-        $subCategory = $products->first()->product->subCategory ?? null;
+        $brand = $products->first()->product->brand ?? null;
         $chunkedProducts = $products->chunk(4); // كل صفحة فيها ٤ منتجات
     @endphp
 
-    {{-- ✅ غلاف الـ SubCategory --}}
-    @if($subCategory && $subCategory->cover_image)
-        <div class="page centered-content">
-            @if($client && $client->logo)
-                <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
+    {{-- ✅ غلاف البراند --}}
+@if($brand)
+    <div class="page centered-content">
+        @if(!empty($brand->background_image_url))
+            <img src="{{ public_path('storage/' . $brand->background_image_url) }}" class="page" alt="Brand Background" style="max-width:100%; height:auto;">
+        @endif
+
+            @if($brand->logo)
+                <img src="{{ public_path('storage/' . $brand->logo) }}" class="logo-top-right">
             @endif
 
-            <img src="{{ public_path('storage/' . $subCategory->cover_image) }}" style="width:100%;">
-        </div>
-    @endif
+        <!-- <div class="content brand-description-box">
+            <h1 class="brand-name">{{ $brand->name_en ?? 'Brand Name' }}</h1>
+
+            @if(!empty($brand->short_description_en))
+                <p class="brand-short-description">{{ $brand->short_description_en }}</p>
+            @endif
+
+            @if(!empty($brand->full_description_en))
+                <p class="brand-full-description">{{ $brand->full_description_en }}</p>
+            @endif
+        </div> -->
+    </div>
+@endif
 
     {{-- ✅ صفحات المنتجات --}}
     @foreach($chunkedProducts as $chunk)
@@ -118,7 +131,7 @@
                     <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
                 @endif
 
-                <h2>{{ $subCategory->name ?? 'Other Products' }}</h2>
+                <h2>{{ $brand->name ?? 'Other Products' }}</h2>
 
                 <div class="products">
                     @foreach($chunk as $tp)
@@ -156,87 +169,87 @@
                         </div>
                     @endforeach
                 </div>
-
             </div>
         </div>
     @endforeach
-
 @endforeach
 
-{{-- ✅ صفحة بيانات العميل --}}
+{{-- ✅ صفحة بيانات العميل (اختياري) --}}
 @php
     $clientBg = $template->coverImages->where('background_position', 'client')->first();
 @endphp
-<div class="page">
-    @if($clientBg)
-        <img src="{{ public_path('storage/' . $clientBg->path) }}" class="background-image">
-    @endif
-    <div class="content centered-content">
-        @if($client && $client->logo)
-            <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
+
+@if($includeClientInfo)
+    <div class="page">
+        @if($clientBg)
+            <img src="{{ public_path('storage/' . $clientBg->path) }}" class="background-image">
         @endif
+        <div class="content centered-content">
+            @if($client && $client->logo)
+                <img src="{{ public_path('storage/' . $client->logo) }}" class="logo-top-right">
+            @endif
 
-        <h2>Client Information</h2>
-        <p>{{ $client->name ?? 'N/A' }}</p>
-        <p>{{ $client->email ?? 'N/A' }}</p>
-        <p>{{ $client->phone ?? 'N/A' }}</p>
+            <h2>Client Information</h2>
+            <p>{{ $client->name ?? 'N/A' }}</p>
+            <p>{{ $client->email ?? 'N/A' }}</p>
+            <p>{{ $client->phone ?? 'N/A' }}</p>
 
-        <h2>Created By</h2>
-        <p>{{ $user->name }}</p>
-        <p>{{ $user->email }}</p>
-        <p>{{ $template->created_at->format('d M Y') }}</p>
+            <h2>Created By</h2>
+            <p>{{ $user->name }}</p>
+            <p>{{ $user->email }}</p>
+            <p>{{ $template->created_at->format('d M Y') }}</p>
 
-        <hr>
+            <hr>
 
-        <h2>Product Summary</h2>
-        <table border="1" cellpadding="10" cellspacing="0" width="100%" style="border-collapse: collapse;">
-            <thead>
-                <tr style="background-color: #f0f0f0;">
-                    <th>Sub Category</th>
-                    <th>Product Count</th>
-                    <th>Sub Total (EGP)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php $totalPrice = 0; @endphp
-
-                @foreach($groupedProducts as $subCategoryId => $products)
-                    @php
-                        $subCategory = $products->first()->product->subCategory ?? null;
-                        $subCategoryName = $subCategory ? $subCategory->name : 'Other';
-                        $count = $products->count();
-                        $subTotal = $products->sum(function($item) {
-                            return $item->price * ($item->quantity ?? 1);
-                        });
-                        $totalPrice += $subTotal;
-                    @endphp
-
-                    <tr>
-                        <td><strong>{{ $subCategoryName }}</strong></td>
-                        <td>{{ $count }}</td>
-                        <td>{{ number_format($subTotal, 2) }} EGP</td>
+            <h2>Product Summary</h2>
+            <table border="1" cellpadding="10" cellspacing="0" width="100%" style="border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f0f0f0;">
+                        <th>Brand</th>
+                        <th>Product Count</th>
+                        <th>Sub Total (EGP)</th>
                     </tr>
-                    <tr>
-                        <td colspan="3" style="padding-left: 20px;">
-                            <ul style="margin: 0; padding-left: 20px;">
-                                @foreach($products as $p)
-                                    <li>{{ $p->name }} - {{ $p->quantity ?? 1 }} × {{ number_format($p->price, 2) }} EGP = {{ number_format($p->price * ($p->quantity ?? 1), 2) }} EGP</li>
-                                @endforeach
-                            </ul>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="2" align="right"><strong>Total Price:</strong></td>
-                    <td><strong>{{ number_format($totalPrice, 2) }} EGP</strong></td>
-                </tr>
-            </tfoot>
-        </table>
+                </thead>
+                <tbody>
+                    @php $totalPrice = 0; @endphp
 
+                    @foreach($groupedProducts as $brandId => $products)
+                        @php
+                            $brand = $products->first()->product->brand ?? null;
+                            $brandName = $brand ? $brand->name : 'Other';
+                            $count = $products->count();
+                            $subTotal = $products->sum(function($item) {
+                                return $item->price * ($item->quantity ?? 1);
+                            });
+                            $totalPrice += $subTotal;
+                        @endphp
+
+                        <tr>
+                            <td><strong>{{ $brandName }}</strong></td>
+                            <td>{{ $count }}</td>
+                            <td>{{ number_format($subTotal, 2) }} EGP</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="padding-left: 20px;">
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    @foreach($products as $p)
+                                        <li>{{ $p->name }} - {{ $p->quantity ?? 1 }} × {{ number_format($p->price, 2) }} EGP = {{ number_format($p->price * ($p->quantity ?? 1), 2) }} EGP</li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" align="right"><strong>Total Price:</strong></td>
+                        <td><strong>{{ number_format($totalPrice, 2) }} EGP</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
-</div>
+@endif
 
 {{-- ✅ الغلافات (النهاية) --}}
 @foreach($template->endCoverImages as $cover)

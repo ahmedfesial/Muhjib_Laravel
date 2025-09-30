@@ -90,26 +90,23 @@ public function generateCatalog(Request $request)
     $request->validate([
         'template_id' => 'required|exists:templates,id',
         'basket_id' => 'required|exists:baskets,id',
+        'include_client_info' => 'nullable|boolean',
     ]);
 
     $template = Template::with('creator')->findOrFail($request->template_id);
     $user = Auth::user();
-
-    $basket = Basket::with('basketProducts.product.subCategory', 'client')->findOrFail($request->basket_id);
-
+    $basket = Basket::with('basketProducts.product.brand', 'client')->findOrFail($request->basket_id);
     $client = $basket->client;
 
     if (!$client) {
-        return response()->json([
-            'message' => 'No client associated with this basket.'
-        ], 400);
-    }
-    $qrDir = storage_path('app/public/qrcodes');
-    if (!file_exists($qrDir)) {
-        mkdir($qrDir, 0755, true); // إنشاء المجلد مع الصلاحيات المناسبة
+        return response()->json(['message' => 'No client associated with this basket.'], 400);
     }
 
-    // توليد QR Codes لكل منتج (إذا لم تكن موجودة مسبقًا)
+    $qrDir = storage_path('app/public/qrcodes');
+    if (!file_exists($qrDir)) {
+        mkdir($qrDir, 0755, true);
+    }
+
     foreach ($basket->basketProducts as $item) {
         $productUrl = url('/products/' . $item->product->id);
         $qrFileName = 'qrcodes/qr_' . $item->product->id . '.svg';
@@ -120,10 +117,9 @@ public function generateCatalog(Request $request)
         }
     }
 
-    // إعداد المنتجات مع مسار QR Code
     $templateProducts = $basket->basketProducts->map(function ($item) {
         $product = $item->product;
-        $qrFileName = 'qrcodes/qr_' . $product->id . '.svg'; // اسم ملف الـ QR
+        $qrFileName = 'qrcodes/qr_' . $product->id . '.svg';
         $qrPublicPath = storage_path('app/public/' . $qrFileName);
 
         return (object)[
@@ -138,8 +134,9 @@ public function generateCatalog(Request $request)
         ];
     });
 
+    // ✅ بدل SubCategory => Brand
     $groupedProducts = $templateProducts->groupBy(function ($item) {
-        return optional($item->product->subCategory)->id;
+        return optional($item->product->brand)->id;
     });
 
     $catalog = Catalog::create([
@@ -149,11 +146,14 @@ public function generateCatalog(Request $request)
         'basket_id' => $basket->id,
     ]);
 
+    $includeClientInfo = $request->boolean('include_client_info', true);
+
     $pdf = Pdf::loadView('templates.pdf', [
         'template' => $template,
         'user' => $user,
         'client' => $client,
         'groupedProducts' => $groupedProducts,
+        'includeClientInfo' => $includeClientInfo,
     ])->setPaper('A4', 'portrait');
 
     $filename = 'catalog_' . time() . '.pdf';
@@ -167,7 +167,6 @@ public function generateCatalog(Request $request)
         'file_url' => Storage::url($filePath),
     ]);
 }
-
 
 public function convertToCatalog(Request $request, Basket $basket)
 {
