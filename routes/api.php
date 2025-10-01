@@ -218,7 +218,7 @@ Route::group(['prefix' => 'sub-categories'], function () {
 Route::group(['prefix' => 'notifications'], function () {
     Route::get('/', [NotificationsController::class, 'index']);
     Route::post('/create', [NotificationsController::class, 'store']);
-    Route::post('{notification}/mark-as-read', [NotificationsController::class, 'markAsRead']);
+    Route::post('/mark-all-as-read', [NotificationsController::class, 'markAllAsRead']);
     Route::post('/{notification}/approve', [NotificationsController::class, 'approve']);
     Route::post('/{notification}/reject', [NotificationsController::class, 'reject']);
 

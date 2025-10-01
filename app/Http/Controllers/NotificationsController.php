@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateNotificationRequest;
 use App\Http\Resources\NotificationResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 class NotificationsController extends Controller
 {
     use AuthorizesRequests;
@@ -26,13 +27,12 @@ class NotificationsController extends Controller
         return response()->json(['message' => 'Notification Created Successfully', 'data' => $data], 201);
     }
 
-    public function markAsRead(Notification $notification)
-    {
+public function markAllAsRead()
+{
+    Auth::user()->unreadNotifications->markAsRead();
 
-        $notification->update(['status' => 'read']);
-
-        return response()->json(['message' => 'Notification marked as read']);
-    }
+    return response()->json(['message' => 'All notifications marked as read']);
+}
 
     public function approve(Notification $notification)
 {
