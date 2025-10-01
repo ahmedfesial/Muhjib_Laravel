@@ -37,7 +37,6 @@
             <tr><th>Pack Size</th><td>{{ $product->pack_size }}</td></tr>
             <tr><th>Dimensions</th><td>{{ $product->dimensions }}</td></tr>
             <tr><th>Capacity</th><td>{{ $product->capacity }}</td></tr>
-            <tr><th>Specification</th><td>{{ $product->specification }}</td></tr>
             <tr><th>Price</th><td>{{ $product->price }}</td></tr>
             <tr><th>Quantity</th><td>{{ $product->quantity }}</td></tr>
         </table>
