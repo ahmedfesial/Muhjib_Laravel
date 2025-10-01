@@ -29,9 +29,15 @@ class NotificationsController extends Controller
 
 public function markAllAsRead()
 {
-    Auth::user()->unreadNotifications->markAsRead();
+    $user = Auth::user(); 
 
-    return response()->json(['message' => 'All notifications marked as read']);
+    \App\Models\Notification::where('receiver_id', $user->id)
+        ->where('status', 'unread')
+        ->update(['status' => 'read']);
+
+    return response()->json([
+        'message' => 'All notifications marked as read successfully.'
+    ]);
 }
 
     public function approve(Notification $notification)
